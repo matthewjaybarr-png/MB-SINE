@@ -6,12 +6,38 @@
 --muted:#6b7280;
 --accent:#0070d8;
 --soft:#f8fafc;
+--font:Arial,Helvetica,sans-serif;
+--title-font:"Orbitron",sans-serif;
+--title:#1e3a8a;
+--title-glow:rgba(30,58,138,.25);
+--topbar-bg:#fff;
+--accent-line:#7db8f2;
+--on-accent:#fff;
+--field-bg:#fff;
+--field-text:#111827;
+--field-off-bg:#eef2f7;
+--field-off-text:#4b5563;
+--btn2-bg:#cfe7ff;
+--ghost-bg:#eaf4ff;
+--btn-text:#111827;
+--danger-bg:#fff1f2;
+--danger-text:#9f1239;
+--danger-line:#fda4af;
+--result-line:#e5e7eb;
+--chip-bg:#f1f5f9;
+--chip-text:#475569;
+--ok-bg:#dcfce7;
+--ok:#166534;
+--warn-bg:#fef3c7;
+--warn-text:#92400e;
+--bad:#b42318;
+--rule:#cbd5e1;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:86px}
 body{
 margin:0;
-font-family:Arial,Helvetica,sans-serif;
+font-family:var(--font);
 background:var(--bg);
 color:var(--text);
 }
@@ -19,7 +45,7 @@ color:var(--text);
 position:sticky;
 top:0;
 z-index:20;
-background:#fff;
+background:var(--topbar-bg);
 border-bottom:1px solid var(--line);
 padding:10px 16px;
 box-shadow:0 1px 3px rgba(0,0,0,.05);
@@ -40,10 +66,10 @@ justify-content:center;
 .nav a{
 text-decoration:none;
 padding:6px 10px;
-border:1px solid #7db8f2;
+border:1px solid var(--accent-line);
 border-radius:999px;
 background:var(--accent);
-color:#fff;
+color:var(--on-accent);
 font-size:12px;
 font-weight:700;
 }
@@ -69,36 +95,12 @@ grid-template-columns:1fr;
 gap:16px;
 margin-bottom:16px;
 }
-.hero{
-background:var(--card);
-border:1px solid var(--line);
-border-radius:16px;
-padding:18px;
-margin-bottom:18px;
-}
-.hero p{
-margin:8px 0 0 0;
-color:var(--muted);
-line-height:1.45;
-}
-.badge{
-display:inline-block;
-padding:5px 9px;
-border-radius:999px;
-background:var(--accent);
-border:1px solid #7db8f2;
-font-size:12px;
-font-weight:700;
-margin-right:6px;
-margin-bottom:6px;
-color:#fff;
-}
 .sectionhead{
 scroll-margin-top:100px;
 margin:12px 0 8px 0;
 padding:6px 10px;
 border-left:6px solid var(--accent);
-background:#f8fafc;
+background:var(--soft);
 border-radius:10px;
 font-size:18px;
 font-weight:800;
@@ -156,35 +158,35 @@ padding:8px 10px;
 border:1px solid var(--line);
 border-radius:10px;
 font-size:12px;
-background:#fff;
-color:#111827;
+background:var(--field-bg);
+color:var(--field-text);
 }
 input:disabled{
-background:#eef2f7;
-color:#4b5563;
+background:var(--field-off-bg);
+color:var(--field-off-text);
 }
 button{
 cursor:pointer;
 font-weight:700;
 background:var(--accent);
-color:#fff;
-border:1px solid #7db8f2;
+color:var(--on-accent);
+border:1px solid var(--accent-line);
 margin-top:10px;
 }
 button.secondary{
-background:#cfe7ff;
-color:#111827;
-border:1px solid #7db8f2;
+background:var(--btn2-bg);
+color:var(--btn-text);
+border:1px solid var(--accent-line);
 }
 button.ghost{
-background:#eaf4ff;
-color:#111827;
-border:1px solid #7db8f2;
+background:var(--ghost-bg);
+color:var(--btn-text);
+border:1px solid var(--accent-line);
 }
 button.danger{
-background:#fff1f2;
-color:#9f1239;
-border-color:#fda4af;
+background:var(--danger-bg);
+color:var(--danger-text);
+border-color:var(--danger-line);
 }
 button:disabled{
 cursor:not-allowed;
@@ -194,7 +196,7 @@ opacity:.55;
 margin-top:8px;
 padding:8px 10px;
 background:var(--soft);
-border:1px solid #e5e7eb;
+border:1px solid var(--result-line);
 border-radius:10px;
 font-weight:700;
 line-height:1.45;
@@ -241,20 +243,20 @@ padding:5px 9px;
 border-radius:999px;
 font-size:11px;
 font-weight:800;
-background:#f1f5f9;
-color:#475569;
+background:var(--chip-bg);
+color:var(--chip-text);
 }
-.status-chip.online{background:#dcfce7;color:#166534;}
-.status-chip.offline{background:#fef3c7;color:#92400e;}
+.status-chip.online{background:var(--ok-bg);color:var(--ok);}
+.status-chip.offline{background:var(--warn-bg);color:var(--warn-text);}
 .machine-check{
 display:block;
 margin-top:8px;
 padding-top:8px;
-border-top:1px solid #cbd5e1;
+border-top:1px solid var(--rule);
 font-weight:700;
 }
-.machine-check.warning{color:#b42318;}
-.machine-check.ok{color:#166534;}
+.machine-check.warning{color:var(--bad);}
+.machine-check.ok{color:var(--ok);}
 .note{
 font-size:11px;
 color:var(--muted);
@@ -278,11 +280,7 @@ overflow:auto;
 max-height:none;
 border:1px solid var(--line);
 border-radius:10px;
-background:#fff;
-}
-.formula-table{
-overflow:visible;
-max-height:none;
+background:var(--field-bg);
 }
 .reference-stack .card .note{margin-bottom:6px;}
 .reference-stack table{font-size:11px;}
@@ -298,7 +296,7 @@ text-align:left;
 vertical-align:top;
 }
 th{
-background:#f8fafc;
+background:var(--soft);
 position:sticky;
 top:0;
 z-index:1;
@@ -323,13 +321,89 @@ html{scroll-padding-top:64px}
 .workflow-actions button{width:100%;min-width:0;margin-top:2px;}
 .output-actions{width:100%;}
 }
-h1, .title {
-    font-family: "Orbitron", sans-serif;
+h1 {
+    font-family: var(--title-font);
     font-size: 44px;
     font-weight: 700;
     letter-spacing: 4px;
     text-align: center;
     margin: 12px 0 18px 0;
-    color: #1e3a8a;
-    text-shadow: 0px 0px 8px rgba(30,58,138,0.25);
+    color: var(--title);
+    text-shadow: 0px 0px 8px var(--title-glow);
 }
+hr.divider{
+margin:16px 0;
+border:none;
+border-top:1px solid var(--line);
+}
+
+/* ---------------------------------------------------------------- MB Forge
+   <html data-host="forge">: Sine inside MB Forge (js/host.js, tools/build-forge.js).
+   Forge's graphite chrome and layout-fluid blue, its bundled font, compact radii.
+   The font files are Forge's own (ui/fonts), so Sine ships none; when Sine is not in
+   ui/vendor/sine/ the font falls back to Consolas. Only the look changes: no calculation does. */
+@font-face{font-family:"MB Mono NL";src:url(../../../fonts/JetBrainsMonoNLNerdFontMono-SemiBold.woff2) format("woff2");
+font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"MB Mono NL";src:url(../../../fonts/JetBrainsMonoNLNerdFontMono-ExtraBold.woff2) format("woff2");
+font-weight:800;font-style:normal;font-display:swap;}
+:root[data-host="forge"]{
+color-scheme:dark;
+--bg:#262b32;
+--card:#2c323a;
+--line:#414955;
+--text:#dfe3e8;
+--muted:#97a1ad;
+--accent:#2c5cb3;
+--soft:#353c46;
+--font:"MB Mono NL",Consolas,monospace;
+--title-font:var(--font);
+--title:#dfe3e8;
+--title-glow:transparent;
+--topbar-bg:#262b32;
+--accent-line:#4a80e2;
+--on-accent:#fff;
+--field-bg:#14161b;
+--field-text:#dfe3e8;
+--field-off-bg:#353c46;
+--field-off-text:#97a1ad;
+--btn2-bg:#353c46;
+--ghost-bg:transparent;
+--btn-text:#dfe3e8;
+--danger-bg:transparent;
+--danger-text:#e2625b;
+--danger-line:#e2625b;
+--result-line:#414955;
+--chip-bg:#353c46;
+--chip-text:#97a1ad;
+--ok-bg:#353c46;
+--ok:#7cc48a;
+--warn-bg:#353c46;
+--warn-text:#e3a83d;
+--bad:#e2625b;
+--rule:#414955;
+}
+:root[data-host="forge"] body{font-weight:600;font-size:13px;}
+:root[data-host="forge"] .topbar{padding:6px 10px;box-shadow:none;}
+:root[data-host="forge"] .topbar h1{font-size:15px;letter-spacing:.2em;margin:0 0 6px;font-weight:800;}
+:root[data-host="forge"] .nav{justify-content:flex-start;gap:4px;}
+:root[data-host="forge"] .nav a{background:transparent;border-color:transparent;border-radius:4px;color:#dfe3e8;font-weight:600;}
+:root[data-host="forge"] .nav a:hover{background:#353c46;border-color:#414955;}
+:root[data-host="forge"] .card{border-radius:6px;}
+:root[data-host="forge"] .sectionhead{border-radius:4px;border-left-width:4px;border-left-color:#4a80e2;font-size:15px;}
+:root[data-host="forge"] input,
+:root[data-host="forge"] select,
+:root[data-host="forge"] button,
+:root[data-host="forge"] textarea,
+:root[data-host="forge"] .result,
+:root[data-host="forge"] .scroll{border-radius:4px;}
+:root[data-host="forge"] input,
+:root[data-host="forge"] select,
+:root[data-host="forge"] button,
+:root[data-host="forge"] textarea{font-family:inherit;font-weight:600;}
+:root[data-host="forge"] button:not(:disabled):hover{border-color:#4a80e2;}
+:root[data-host="forge"] button.secondary,
+:root[data-host="forge"] button.ghost{border-color:#414955;}
+:root[data-host="forge"] .quick button{border-radius:4px;}
+:root[data-host="forge"] :focus-visible{outline:2px solid #4a80e2;outline-offset:1px;}
+/* Forge ships the files; there is no online/offline state to report */
+:root[data-host="forge"] #connectionStatus{display:none;}

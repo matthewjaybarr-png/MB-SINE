@@ -30,25 +30,25 @@ MB baselines are starting assumptions. Enter manufacturer values when they are a
 
 - **Quick Select** displays values from the built-in drill chart.
 - **Search or Convert** accepts standard drill names, fractions, decimal inches, and millimeters.
-- **Spot and Center Drill Helper** estimates spot diameter and depth from tool angle and following-drill diameter.
-- **Drill Point Depth and Peck Guide** calculates point depth and classifies hole depth by diameter ratio.
+- **Point and Spot Depth** gives a drill's point length, or the depth a spot or center drill needs to make a given diameter.
+- **Peck Guide** classifies hole depth by diameter ratio.
 
 Peck output is general guidance. Drill geometry, chip form, coolant delivery, and manufacturer recommendations still control the actual cycle.
 
 ### Threads and Taps
 
 - **Tap Drill Check** covers UNC, UNF, metric, and NPT threads.
-- Cutting taps and form taps are handled separately.
+- Cutting taps and form taps are handled separately. Form-tap drills are larger (0.68 × pitch instead of 1.299 × pitch), and the standard chart drill is shown for cutting taps.
 - Unsupported NPT form-tap estimates are not invented; the calculator directs the user to manufacturer data.
 - **Tap Speeds and Feeds** calculates RPM and synchronized feed from thread pitch.
-- **Thread Mill Helper** includes flute count and internal/external centerline diameter.
+- **Thread Mill Helper** includes flute count and internal/external centerline diameter, and gives the programmed feed at the tool centerline as well as the feed at the cutting edge.
 - **NPT Helper** gives pitch-and-turn travel guidance, not finished-thread gage depth.
 
 Always verify threaded work with the correct tap or thread-mill data and inspection method.
 
 ### Geometry and Helix
 
-This section contains chamfer depth, countersink depth, and helical-pitch/angle calculations. Invalid geometry—such as a cutter larger than its bore—is reported as an error instead of being formatted as a plausible zero.
+This section contains chamfer and countersink depth (give a size per side or a top diameter) and helical-pitch/angle calculations. Invalid geometry—such as a cutter larger than its bore—is reported as an error instead of being formatted as a plausible zero.
 
 ### Advanced Milling and Inspection Math
 
@@ -62,7 +62,7 @@ These are mathematical helpers. Surface angle, cutter deflection, runout, tolera
 
 ### Shop Math
 
-Includes inch/millimeter, decimal/fraction, pitch, and surface-speed conversions plus bolt circles, circle properties, taper, point-to-point distance, percentage change, and right-triangle solving.
+Includes inch/millimeter, decimal/fraction, pitch, and surface-speed conversions plus bolt circles, circle properties, taper, point-to-point distance, and right-triangle solving.
 
 ### Reference Tables
 

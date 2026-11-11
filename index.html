@@ -10,6 +10,7 @@
 <link href="./icons/mb-sine.svg" rel="icon" type="image/svg+xml"/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&amp;display=swap" rel="stylesheet"/>
 <link href="./css/styles.css" rel="stylesheet"/>
+<script src="./js/host.js"></script>
 </head>
 <body>
 <div class="topbar">
@@ -29,7 +30,7 @@
 <div class="workflow-grid">
 <div>
 <label for="machineProfileSelect">Active machine profile</label>
-<select id="machineProfileSelect" onchange="selectMachineProfile()">
+<select id="machineProfileSelect" data-change="selectMachineProfile()">
 <option value="">No machine limits selected</option>
 </select>
 </div>
@@ -47,9 +48,9 @@
 </div>
 </div>
 <div class="workflow-actions">
-<button onclick="saveMachineProfile()" type="button">Save Profile</button>
-<button class="ghost" onclick="newMachineProfile()" type="button">New Profile</button>
-<button class="danger" onclick="deleteMachineProfile()" type="button">Delete Profile</button>
+<button data-click="saveMachineProfile()" type="button">Save Profile</button>
+<button class="ghost" data-click="newMachineProfile()" type="button">New Profile</button>
+<button class="danger" data-click="deleteMachineProfile()" type="button">Delete Profile</button>
 </div>
 <div class="result result-info" id="machineProfileStatus">No machine limits selected.</div>
 <div class="workflow-output">
@@ -58,8 +59,8 @@
 <div class="note" id="latestResultStatus">Run a calculation to enable copy and download.</div>
 </div>
 <div class="workflow-actions output-actions">
-<button class="secondary" disabled id="copyLatestButton" onclick="copyLatestResult()" type="button">Copy Result</button>
-<button class="ghost" disabled id="downloadLatestButton" onclick="downloadLatestResult()" type="button">Download Note</button>
+<button class="secondary" disabled id="copyLatestButton" data-click="copyLatestResult()" type="button">Copy Result</button>
+<button class="ghost" disabled id="downloadLatestButton" data-click="downloadLatestResult()" type="button">Download Note</button>
 </div>
 </div>
 </div>
@@ -70,7 +71,7 @@
 <div class="row2">
 <div>
 <label for="calcType">Calculation type</label>
-<select id="calcType" onchange="toggleCalcType(); updatePresetPreview();">
+<select id="calcType" data-change="toggleCalcType(); updatePresetPreview();">
 <option value="drill">Drill</option>
 <option value="endmill">Endmill</option>
 <option value="face45">45 Degree Face Mill</option>
@@ -86,21 +87,21 @@
 </div>
 </div>
 <label for="speedBasis">Speed calculation basis</label>
-<select id="speedBasis" onchange="updateSpeedBasisUI('main')">
+<select id="speedBasis" data-change="updateSpeedBasisUI('main')">
 <option value="sfm">Use SFM to calculate RPM</option>
 <option value="rpm">Use RPM to calculate SFM</option>
 </select>
 <div id="drillToolTypeBox">
 <label for="drillToolType">Drill tool type</label>
-<select id="drillToolType" onchange="updatePresetPreview()">
+<select id="drillToolType" data-change="updatePresetPreview()">
 <option value="hss">HSS Drill</option>
 <option value="carbide">Carbide Drill</option>
 </select>
 </div>
 <label for="material">Material</label>
-<select id="material" onchange="updatePresetPreview()"></select>
+<select id="material" data-change="updatePresetPreview()"></select>
 <label for="presetLevel">Shop baseline level</label>
-<select id="presetLevel" onchange="updatePresetPreview()">
+<select id="presetLevel" data-change="updatePresetPreview()">
 <option value="conservative">Low / conservative</option>
 <option selected="selected" value="standard">Standard starting point</option>
 <option value="upper">Upper baseline — verify setup</option>
@@ -142,11 +143,11 @@
 </div>
 </div>
 <div class="quick">
-<button onclick="applyPreset()">Apply Shop Baseline</button>
-<button class="ghost" onclick="clearMillingCalc()">Clear Variables</button>
+<button data-click="applyPreset()">Apply Shop Baseline</button>
+<button class="ghost" data-click="clearMillingCalc()">Clear Variables</button>
 </div>
 <div class="result" id="presetPreview">Preset preview</div>
-<button onclick="calcMain()">Calculate</button>
+<button data-click="calcMain()">Calculate</button>
 <div class="result" id="mainResult"></div>
 <div class="note">
 Choose the speed calculation basis, then enter the enabled SFM or RPM value. Drill mode uses IPR. Endmill mode uses radial stepover for chip thinning. Face mill and shoulder mill modes ignore radial stepover in the main calculation.
@@ -157,7 +158,7 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Dri
 <div class="row2">
 <div>
 <label for="turnType">Operation type</label>
-<select id="turnType" onchange="updateTurningPresetPreview()">
+<select id="turnType" data-change="updateTurningPresetPreview()">
 <option value="turn">OD or Face Turning</option>
 <option value="bore">ID Boring</option>
 <option value="groove">Grooving</option>
@@ -173,14 +174,14 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Dri
 </div>
 </div>
 <label for="turnSpeedBasis">Speed calculation basis</label>
-<select id="turnSpeedBasis" onchange="updateSpeedBasisUI('turn')">
+<select id="turnSpeedBasis" data-change="updateSpeedBasisUI('turn')">
 <option value="sfm">Use SFM to calculate RPM</option>
 <option value="rpm">Use RPM to calculate SFM</option>
 </select>
 <label for="turnMaterial">Material</label>
-<select id="turnMaterial" onchange="updateTurningPresetPreview()"></select>
+<select id="turnMaterial" data-change="updateTurningPresetPreview()"></select>
 <label for="turnPresetLevel">Shop baseline level</label>
-<select id="turnPresetLevel" onchange="updateTurningPresetPreview()">
+<select id="turnPresetLevel" data-change="updateTurningPresetPreview()">
 <option value="conservative">Low / conservative</option>
 <option selected="selected" value="standard">Standard starting point</option>
 <option value="upper">Upper baseline — verify setup</option>
@@ -206,11 +207,11 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Dri
 </div>
 </div>
 <div class="quick">
-<button onclick="applyTurningPreset()">Apply Shop Baseline</button>
-<button class="ghost" onclick="clearTurningCalc()">Clear Variables</button>
+<button data-click="applyTurningPreset()">Apply Shop Baseline</button>
+<button class="ghost" data-click="clearTurningCalc()">Clear Variables</button>
 </div>
 <div class="result" id="turnPresetPreview">Preset preview</div>
-<button onclick="calcTurningMain()">Calculate</button>
+<button data-click="calcTurningMain()">Calculate</button>
 <div class="result" id="turnResult"></div>
 <div class="note">
 Choose the speed calculation basis, then enter the enabled SFM or RPM value. Feed is shown from RPM × IPR.
@@ -223,13 +224,13 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Fee
 <div class="row2">
 <div>
 <label for="drillQuick">Quick select</label>
-<select id="drillQuick" onchange="showQuickDrill()"></select>
+<select id="drillQuick" data-change="showQuickDrill()"></select>
 <div class="result" id="drillQuickResult"></div>
 </div>
 <div>
 <label for="drillSearch">Search or convert size</label>
 <input id="drillSearch" placeholder="Examples: 3/16, #7, A, 10.2 mm, .257" type="text"/>
-<button class="secondary" onclick="calculateDrillSearch()">Calculate</button>
+<button class="secondary" data-click="calculateDrillSearch()">Calculate</button>
 <div class="result" id="drillSearchResult"></div>
 </div>
 </div>
@@ -238,42 +239,33 @@ Quick select stays tied to the built in drill chart. Search or convert lets you 
 Bare decimal values are treated as inches; include mm for metric input.
 </div>
 </div><div class="card">
-<h2>Spot and Center Drill Helper</h2>
+<h2>Point and Spot Depth</h2>
 <div class="row2">
 <div>
-<label for="spotToolType">Tool type</label>
-<select id="spotToolType" onchange="applySpotToolType()">
-<option value="spot90">Spot Drill 90°</option>
-<option value="spot120">Spot Drill 120°</option>
-<option value="spot140">Spot Drill 140°</option>
-<option value="center60">Center Drill 60°</option>
-<option value="custom">Custom Angle</option>
+<label for="spotToolType">Tool</label>
+<select id="spotToolType" data-change="applySpotToolType()">
+<option value="drill118">Drill 118°</option>
+<option value="drill135">Drill 135°</option>
+<option value="drill140">Drill 140°</option>
+<option value="spot90">Spot drill 90°</option>
+<option value="spot120">Spot drill 120°</option>
+<option value="spot140">Spot drill 140°</option>
+<option value="center60">Center drill 60°</option>
+<option value="custom">Custom angle</option>
 </select>
 </div>
 <div>
 <label for="spotAngle">Included angle</label>
-<input id="spotAngle" step="any" type="number" value="90"/>
+<input id="spotAngle" step="any" type="number" value="118"/>
 </div>
 </div>
-<label for="followDrillDia">Follow drill diameter</label>
-<input id="followDrillDia" step="any" type="number" value="0.250"/>
-<button onclick="calcSpotDrill()">Calculate Spot Diameter Guidance</button>
+<label for="followDrillDia">Diameter (the drill, or the spot diameter wanted)</label>
+<input id="followDrillDia" step="any" type="number" value="0.375"/>
+<button data-click="calcSpotDrill()">Calculate Depth</button>
 <div class="result" id="spotDrillResult"></div>
+<div class="note">For a drill this is the point length: add it to reach full diameter at depth or to break through. For a spot or center drill it is the depth that makes a spot of this diameter; spot slightly larger than the follow drill.</div>
 </div><div class="card">
-<h2>Drill Point Depth and Peck Guide</h2>
-<div class="row2">
-<div>
-<label for="pointDia">Drill diameter</label>
-<input id="pointDia" step="any" type="number" value="0.375"/>
-</div>
-<div>
-<label for="pointAngle">Included point angle</label>
-<input id="pointAngle" step="any" type="number" value="118"/>
-</div>
-</div>
-<button onclick="calcPointDepth()">Calculate Drill Point Depth</button>
-<div class="result" id="pointDepthResult"></div>
-<hr style="margin:16px 0;border:none;border-top:1px solid #d6dde8;"/>
+<h2>Peck Guide</h2>
 <div class="row2">
 <div>
 <label for="peckDia">Drill diameter</label>
@@ -302,7 +294,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 </select>
 </div>
 </div>
-<button onclick="calcPeck()">Calculate Peck Guidance</button>
+<button data-click="calcPeck()">Calculate Peck Guidance</button>
 <div class="result" id="peckResult"></div>
 </div></div>
 <div class="sectionhead" id="threads">Threads and Taps</div>
@@ -311,7 +303,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div class="row2">
 <div>
 <label for="threadType">Thread standard</label>
-<select id="threadType" onchange="loadThreadChart()">
+<select id="threadType" data-change="loadThreadChart()">
 <option value="UNC">UNC</option>
 <option value="UNF">UNF</option>
 <option value="NPT">NPT</option>
@@ -320,13 +312,13 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div>
 <div>
 <label for="threadSelect">Thread or tap size</label>
-<select id="threadSelect" onchange="syncThreadToolsFromTap(); calcTapSearch()"></select>
+<select id="threadSelect" data-change="syncThreadToolsFromTap(); calcTapSearch()"></select>
 </div>
 </div>
 <div class="row2">
 <div>
 <label for="tapStyle">Tap style</label>
-<select id="tapStyle" onchange="calcTapSearch()">
+<select id="tapStyle" data-change="calcTapSearch()">
 <option value="cut">Cutting Tap</option>
 <option value="form">Form Tap</option>
 </select>
@@ -336,7 +328,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 <input id="candidateDrill" placeholder="Optional: #7, 13/64, .201, 5.1 mm" type="text"/>
 </div>
 </div>
-<button onclick="calcTapSearch()">Check Tap Drill</button>
+<button data-click="calcTapSearch()">Check Tap Drill</button>
 <div class="result" id="tapResult"></div>
 <div class="note">
 Straight threads show a calculated drill range and alternatives. NPT shows a listed cutting-tap drill reference; NPT form-tap sizing is intentionally not estimated.
@@ -346,7 +338,7 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 <div class="row2">
 <div>
 <label for="tapCalcThreadType">Thread standard</label>
-<select id="tapCalcThreadType" onchange="loadTapCalcThreadChart()">
+<select id="tapCalcThreadType" data-change="loadTapCalcThreadChart()">
 <option value="UNC">UNC</option>
 <option value="UNF">UNF</option>
 <option value="NPT">NPT</option>
@@ -355,20 +347,20 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 </div>
 <div>
 <label for="tapCalcSelect">Thread or tap size</label>
-<select id="tapCalcSelect" onchange="applyTapCalcSelect()"></select>
+<select id="tapCalcSelect" data-change="applyTapCalcSelect()"></select>
 </div>
 </div>
 <div class="row3">
 <div>
 <label for="tapCalcStyle">Tap style</label>
-<select id="tapCalcStyle" onchange="applyTapPreset()">
+<select id="tapCalcStyle" data-change="applyTapPreset()">
 <option value="cut">Cutting Tap</option>
 <option value="form">Form Tap</option>
 </select>
 </div>
 <div>
 <label for="tapToolMaterial">Tap tool material</label>
-<select id="tapToolMaterial" onchange="applyTapPreset()">
+<select id="tapToolMaterial" data-change="applyTapPreset()">
 <option value="hss">HSS</option>
 <option value="carbide">Carbide</option>
 </select>
@@ -399,20 +391,20 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 </div>
 </div>
 <label for="tapSpeedBasis">Speed calculation basis</label>
-<select id="tapSpeedBasis" onchange="updateSpeedBasisUI('tap')">
+<select id="tapSpeedBasis" data-change="updateSpeedBasisUI('tap')">
 <option value="sfm">Use SFM to calculate RPM</option>
 <option value="rpm">Use RPM to calculate SFM</option>
 </select>
 <label for="tapPresetLevel">Shop baseline level</label>
-<select id="tapPresetLevel" onchange="applyTapPreset()">
+<select id="tapPresetLevel" data-change="applyTapPreset()">
 <option value="conservative">Low / conservative</option>
 <option selected="selected" value="standard">Standard starting point</option>
 <option value="upper">Upper baseline — verify setup</option>
 </select>
 <div class="quick">
-<button class="secondary" onclick="applyTapPreset()">Apply Shop Baseline</button>
-<button onclick="calcTapSpeedFeed()">Calculate</button>
-<button class="ghost" onclick="clearTapCalc()">Clear Variables</button>
+<button class="secondary" data-click="applyTapPreset()">Apply Shop Baseline</button>
+<button data-click="calcTapSpeedFeed()">Calculate</button>
+<button class="ghost" data-click="clearTapCalc()">Clear Variables</button>
 </div>
 <div class="result" id="tapSpeedResult"></div>
 </div></div>
@@ -421,7 +413,7 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 <div class="row2">
 <div>
 <label for="tmThreadType">Thread standard</label>
-<select id="tmThreadType" onchange="loadThreadMillChart()">
+<select id="tmThreadType" data-change="loadThreadMillChart()">
 <option value="UNC">UNC</option>
 <option value="UNF">UNF</option>
 <option value="NPT">NPT</option>
@@ -430,7 +422,7 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 </div>
 <div>
 <label for="tmSelect">Thread or tap size</label>
-<select id="tmSelect" onchange="applyThreadMillSelect()"></select>
+<select id="tmSelect" data-change="applyThreadMillSelect()"></select>
 </div>
 </div>
 <div class="row3">
@@ -481,7 +473,7 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 </select>
 </div>
 </div>
-<button onclick="calcThreadMill()">Calculate Thread Mill</button>
+<button data-click="calcThreadMill()">Calculate Thread Mill</button>
 <div class="result" id="threadMillResult"></div>
 </div><div class="card">
 <h2>NPT Helper</h2>
@@ -489,31 +481,38 @@ Straight threads show a calculated drill range and alternatives. NPT shows a lis
 <select id="nptSize"></select>
 <label for="nptTurns">Thread turns desired</label>
 <input id="nptTurns" step="any" type="number" value="4"/>
-<button onclick="calcNptHelper()">Calculate NPT Approximation</button>
+<button data-click="calcNptHelper()">Calculate NPT Approximation</button>
 <div class="result" id="nptHelperResult"></div>
 <div class="note">
 This is only a simple programming helper using pitch and turns. Actual gauging and functional depth should still be verified with the real thread form and inspection method.
 </div>
 </div></div>
 <div class="sectionhead" id="milling">Geometry and Helix</div><div class="grid-auto"><div class="card">
-<h2>Chamfer Depth Helper</h2>
+<h2>Chamfer and Countersink Depth</h2>
 <div class="row2">
 <div>
 <label for="chamferHoleDia">Starting hole diameter</label>
 <input id="chamferHoleDia" step="any" type="number" value="0.250"/>
 </div>
 <div>
-<label for="chamferWidth">Target chamfer size per side</label>
+<label for="chamferWidth" id="chamferWidthLabel">Target chamfer size per side</label>
 <input id="chamferWidth" step="any" type="number" value="0.030"/>
 </div>
 </div>
+<label for="chamferSizeBy">Size given as</label>
+<select id="chamferSizeBy" data-change="updateChamferSizeBy()">
+<option value="width">Chamfer size per side</option>
+<option value="major">Top (countersink) diameter</option>
+</select>
 <div class="row2">
 <div>
 <label for="chamferAngle">Tool included angle</label>
 <select id="chamferAngle">
 <option value="30">30 degree tool for 15 degree chamfer</option>
 <option value="60">60 degree tool for 30 degree chamfer</option>
+<option value="82">82 degree countersink</option>
 <option selected="selected" value="90">90 degree tool for 45 degree chamfer</option>
+<option value="100">100 degree countersink</option>
 <option value="120">120 degree tool for 60 degree chamfer</option>
 <option value="15">15 degree included</option>
 <option value="45">45 degree included</option>
@@ -529,32 +528,9 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 <label for="chamferToolMaxDia">Chamfer tool cutting diameter</label>
 <input id="chamferToolMaxDia" step="any" type="number" value="0.500"/>
-<div class="quick">
-<button onclick="setChamferAngle(30)" type="button">15</button>
-<button onclick="setChamferAngle(60)" type="button">30</button>
-<button onclick="setChamferAngle(90)" type="button">45</button>
-<button onclick="setChamferAngle(120)" type="button">60</button>
-</div>
-<button onclick="calcChamfer()">Calculate Program Depth</button>
+<button data-click="calcChamfer()">Calculate Program Depth</button>
 <div class="result" id="chamferResult"></div>
-<div class="note">Uses hole size, chamfer size, tool angle, tip diameter, and tool cutting diameter to show the actual depth needed in the program and whether the tool is large enough.</div>
-</div><div class="card">
-<h2>Countersink Depth Helper</h2>
-<label for="holeDia">Starting hole diameter</label>
-<input id="holeDia" step="any" type="number" value="0.250"/>
-<label for="cskMajor">Countersink major diameter</label>
-<input id="cskMajor" step="any" type="number" value="0.500"/>
-<label for="cskAngle">Included angle</label>
-<select id="cskAngle">
-<option value="60">60 degree</option>
-<option selected="selected" value="82">82 degree</option>
-<option value="90">90 degree</option>
-<option value="100">100 degree</option>
-<option value="120">120 degree</option>
-</select>
-<button onclick="calcCountersink()">Calculate Countersink</button>
-<div class="result" id="cskResult"></div>
-<div class="note">Use this for countersink depth from existing hole size and target major diameter.</div>
+<div class="note">Give the chamfer as a size per side, or as the top diameter for a countersink. Shows the program depth, the depth past where the tool touches the hole edge, and whether the tool is large enough.</div>
 </div><div class="card">
 <h2>Helix Pitch Calculator</h2>
 <div class="row2">
@@ -578,9 +554,9 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 </div>
 <div class="quick">
-<button onclick="calcPitchFromAngle()">Calc pitch from angle</button>
-<button class="secondary" onclick="calcAngleFromPitch()">Calc angle from pitch</button>
-<button class="ghost" onclick="clearHelixPitch()">Clear</button>
+<button data-click="calcPitchFromAngle()">Calc pitch from angle</button>
+<button class="secondary" data-click="calcAngleFromPitch()">Calc angle from pitch</button>
+<button class="ghost" data-click="clearHelixPitch()">Clear</button>
 </div>
 <div class="result" id="helixPitchResult"></div>
 </div></div>
@@ -599,14 +575,14 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 <label for="arcSurfaceFeed">Desired feed at cutting edge in IPM</label>
 <input id="arcSurfaceFeed" step="any" type="number" value="20.000"/>
-<button onclick="calcCircularInterpolation()">Calculate Centerline Feed</button>
+<button data-click="calcCircularInterpolation()">Calculate Centerline Feed</button>
 <div class="result" id="arcFeedResult"></div>
 <div class="note">Compensates feed for the cutter-centerline path. This is geometry math, not a controller code generator.</div>
 </div>
 <div class="card">
 <h2>Effective Cutting Diameter</h2>
 <label for="effectiveToolType">Tool type</label>
-<select id="effectiveToolType" onchange="toggleEffectiveToolType()">
+<select id="effectiveToolType" data-change="toggleEffectiveToolType()">
 <option value="ball">Ball-nose tool</option>
 <option value="taper">Tapered tool</option>
 </select>
@@ -620,13 +596,13 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 <label for="effectiveRpm">RPM for effective SFM</label>
 <input id="effectiveRpm" step="any" type="number" value="3000"/>
-<button onclick="calcEffectiveDiameter()">Calculate Effective Diameter</button>
+<button data-click="calcEffectiveDiameter()">Calculate Effective Diameter</button>
 <div class="result" id="effectiveDiameterResult"></div>
 </div>
 <div class="card">
 <h2>Scallop Height and Stepover</h2>
 <label for="scallopSolveFrom">Solve from</label>
-<select id="scallopSolveFrom" onchange="toggleScallopSource()">
+<select id="scallopSolveFrom" data-change="toggleScallopSource()">
 <option value="stepover">Entered stepover</option>
 <option value="height">Entered scallop height</option>
 </select>
@@ -636,7 +612,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <div><label for="scallopStepover">Stepover</label><input id="scallopStepover" step="any" type="number" value="0.050"/></div>
 <div><label for="scallopHeight">Scallop height</label><input disabled id="scallopHeight" step="any" type="number" value=""/></div>
 </div>
-<button onclick="calcScallop()">Calculate Scallop Geometry</button>
+<button data-click="calcScallop()">Calculate Scallop Geometry</button>
 <div class="result" id="scallopResult"></div>
 </div>
 <div class="card">
@@ -649,7 +625,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <div><label for="positionNominalY">Nominal Y</label><input id="positionNominalY" step="any" type="number" value="0"/></div>
 <div><label for="positionActualY">Actual Y</label><input id="positionActualY" step="any" type="number" value="0.004"/></div>
 </div>
-<button onclick="calcTruePosition()">Calculate True Position</button>
+<button data-click="calcTruePosition()">Calculate True Position</button>
 <div class="result" id="truePositionResult"></div>
 <div class="note">Reports diametrical true position from X and Y center deviations. Apply print datum and material-condition requirements separately.</div>
 </div>
@@ -663,7 +639,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <div><label for="boreMaxRadialDepth">Maximum radial depth per rough pass</label><input id="boreMaxRadialDepth" step="any" type="number" value="0.100"/></div>
 <div><label for="boreFinishAllowance">Finish allowance on diameter</label><input id="boreFinishAllowance" step="any" type="number" value="0.020"/></div>
 </div>
-<button onclick="calcBoreStockPlan()">Calculate Bore Plan</button>
+<button data-click="calcBoreStockPlan()">Calculate Bore Plan</button>
 <div class="result" id="boreStockResult"></div>
 </div>
 </div>
@@ -682,9 +658,9 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="convMmInput" step="any" type="number" value="25.4"/>
 </div>
 </div>
-<button onclick="calcLengthConversion()">Convert length</button>
+<button data-click="calcLengthConversion()">Convert length</button>
 <div class="result" id="convLengthResult"></div>
-<hr style="margin:16px 0;border:none;border-top:1px solid #d6dde8;"/>
+<hr class="divider"/>
 <h3>Decimal and Fraction</h3>
 <div class="row2">
 <div>
@@ -696,9 +672,9 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="convFracInput" type="text" value="3/16"/>
 </div>
 </div>
-<button onclick="calcFractionConversion()">Convert fraction</button>
+<button data-click="calcFractionConversion()">Convert fraction</button>
 <div class="result" id="convFractionResult"></div>
-<hr style="margin:16px 0;border:none;border-top:1px solid #d6dde8;"/>
+<hr class="divider"/>
 <h3>Pitch and Surface Speed</h3>
 <div class="row2">
 <div>
@@ -720,7 +696,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="convSmmInput" step="any" type="number" value="106.68"/>
 </div>
 </div>
-<button onclick="calcPitchSpeedConversion()">Convert pitch and speed</button>
+<button data-click="calcPitchSpeedConversion()">Convert pitch and speed</button>
 <div class="result" id="convPitchSpeedResult"></div>
 </div>
 <div class="card">
@@ -741,7 +717,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="centerY" step="any" type="number" value="0"/>
 </div>
 </div>
-<button onclick="calcBoltCircle()">Calculate</button>
+<button data-click="calcBoltCircle()">Calculate</button>
 <div class="result" id="boltSummaryResult"></div>
 <div class="scroll" style="max-height:260px;">
 <table>
@@ -771,7 +747,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="circleRad" step="any" type="number" value="0.500"/>
 <label for="circleCirc">Circumference</label>
 <input id="circleCirc" step="any" type="number" value="3.1416"/>
-<button onclick="calcCircle()">Calculate from entered value</button>
+<button data-click="calcCircle()">Calculate from entered value</button>
 <div class="result" id="circleResult"></div>
 </div>
 </div>
@@ -784,7 +760,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="smallDia" step="any" type="number" value="0.750"/>
 <label for="taperLen">Taper length</label>
 <input id="taperLen" step="any" type="number" value="1.000"/>
-<button onclick="calcTaper()">Calculate taper</button>
+<button data-click="calcTaper()">Calculate taper</button>
 <div class="result" id="taperResult"></div>
 <div class="note">Outputs per side angle, included angle, taper per inch, and taper per foot.</div>
 </div>
@@ -810,19 +786,8 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="y2" step="any" type="number" value="1"/>
 </div>
 </div>
-<button onclick="calcPointDistance()">Calculate distance</button>
+<button data-click="calcPointDistance()">Calculate distance</button>
 <div class="result" id="pointDistanceResult"></div>
-</div>
-<div class="card">
-<h2>Basic Shop Math</h2>
-<label for="percentBase">Base value</label>
-<input id="percentBase" step="any" type="number" value="1.000"/>
-<label for="percentValue">Percent</label>
-<input id="percentValue" step="any" type="number" value="10"/>
-<label for="percentNew">New value</label>
-<input id="percentNew" step="any" type="number" value="1.100"/>
-<button onclick="calcBasicShopMath()">Calculate</button>
-<div class="result" id="basicShopMathResult"></div>
 </div>
 </div>
 <div class="grid2 compact-grid">
@@ -857,7 +822,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <input id="trigAngleDeg" step="any" type="number" value=""/>
 </div>
 </div>
-<button onclick="solveRightTriangle()">Solve from entered values</button>
+<button data-click="solveRightTriangle()">Solve from entered values</button>
 <div class="result" id="trigResult"></div>
 <div class="note">Enter any valid two pieces of information. Angle A is opposite Side A and adjacent to Side B.</div>
 </div>
@@ -871,21 +836,18 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <tr><th>Category</th><th>Formula</th><th>Use</th></tr>
 </thead>
 <tbody>
-<tr><td>Drilling</td><td>RPM = (SFM × 3.82) / Dia</td><td>Spindle speed from SFM and tool diameter in inches</td></tr>
-<tr><td>Drilling</td><td>SFM = (RPM × Dia) / 3.82</td><td>Surface speed from RPM and tool diameter</td></tr>
-<tr><td>Drilling</td><td>IPM = RPM × IPR</td><td>Drill feed rate</td></tr>
+<tr><td>Speed</td><td>RPM = (SFM × 3.82) / Dia</td><td>Spindle speed from SFM and diameter in inches: the tool, or the work on a lathe</td></tr>
+<tr><td>Speed</td><td>SFM = (RPM × Dia) / 3.82</td><td>Surface speed from RPM and diameter</td></tr>
+<tr><td>Feed</td><td>IPM = RPM × IPR</td><td>Drilling and turning feed rate</td></tr>
 <tr><td>Milling</td><td>IPM = RPM × Teeth × FPT</td><td>Feed rate for milling cutters</td></tr>
-<tr><td>Milling</td><td>RPM = (SFM × 3.82) / Dia</td><td>Endmill, face mill, shoulder mill spindle speed</td></tr>
 <tr><td>Milling</td><td>Chip thinning factor = 1 / sqrt(1 − (1 − 2 × stepover ratio)^2)</td><td>Radial chip thinning for stepover below 50 percent of tool diameter</td></tr>
-<tr><td>Turning</td><td>RPM = (SFM × 3.82) / Dia</td><td>Turning spindle speed from work diameter</td></tr>
-<tr><td>Turning</td><td>IPM = RPM × IPR</td><td>Turning feed rate</td></tr>
-<tr><td>Tapping inch</td><td>Pitch = 1 / TPI</td><td>Lead or feed per revolution in inches</td></tr>
-<tr><td>Tapping metric</td><td>Pitch inches = Metric pitch / 25.4</td><td>Convert metric pitch to inch lead</td></tr>
+<tr><td>Tapping</td><td>Pitch = 1 / TPI, or metric pitch / 25.4</td><td>Lead or feed per revolution in inches</td></tr>
 <tr><td>Tapping</td><td>Feed IPM = RPM × Pitch</td><td>Rigid tap feed rate</td></tr>
-<tr><td>Tap drill inch</td><td>Tap drill ≈ Major dia − (1.299038 × pitch × thread percent)</td><td>Approximate cutting tap drill size</td></tr>
+<tr><td>Tap drill</td><td>Tap drill ≈ Major dia − (1.299038 × pitch × thread percent)</td><td>Cutting tap drill size (75 percent thread typical)</td></tr>
+<tr><td>Tap drill</td><td>Form tap drill ≈ Major dia − (0.68 × pitch × thread percent)</td><td>Form (roll) tap drill size (65 percent thread typical)</td></tr>
+<tr><td>Thread milling</td><td>Centerline feed = RPM × teeth × FPT × (major dia ∓ tool dia) / major dia</td><td>Programmed thread-mill feed: minus for internal, plus for external threads</td></tr>
 <tr><td>Point depth</td><td>Depth = (Dia / 2) / tan(included angle / 2)</td><td>Drill point, spot, or countersink depth</td></tr>
-<tr><td>Chamfer</td><td>Program depth = chamfer size / tan(included angle / 2)</td><td>Z depth from a sharp edge to hold a chamfer size per side</td></tr>
-<tr><td>Countersink</td><td>Depth = ((major dia − hole dia) / 2) / tan(included angle / 2)</td><td>Countersink depth from hole size and target major diameter</td></tr>
+<tr><td>Chamfer</td><td>Depth past the hole edge = chamfer size / tan(included angle / 2), chamfer size = (top dia − hole dia) / 2</td><td>Chamfer or countersink depth from where the tool touches the hole</td></tr>
 <tr><td>Right triangle</td><td>Hypotenuse = sqrt(A^2 + B^2)</td><td>Find diagonal length from two sides</td></tr>
 <tr><td>Right triangle</td><td>Angle = atan(opposite / adjacent)</td><td>Find included right triangle angle</td></tr>
 <tr><td>Bolt circle</td><td>X = center X + radius × cos(angle)</td><td>Bolt hole X coordinate</td></tr>
@@ -902,8 +864,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <tr><td>Scallop</td><td>Height = radius − sqrt(radius² − (stepover / 2)²)</td><td>Theoretical ball-tool scallop height</td></tr>
 <tr><td>Inspection</td><td>True position = 2 × sqrt(ΔX² + ΔY²)</td><td>Diametrical true position from center deviations</td></tr>
 <tr><td>Bore planning</td><td>Radial stock = (finish dia − current dia) / 2</td><td>Divide rough stock into equal radial passes and preserve finish allowance</td></tr>
-<tr><td>Conversions</td><td>mm = inch × 25.4</td><td>Inch to metric conversion</td></tr>
-<tr><td>Conversions</td><td>inch = mm / 25.4</td><td>Metric to inch conversion</td></tr>
+<tr><td>Conversions</td><td>mm = inch × 25.4</td><td>Inch to metric (inch = mm / 25.4)</td></tr>
 </tbody>
 </table>
 </div>
@@ -934,5 +895,6 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <script src="./js/core.js"></script>
 <script src="./js/workflow.js"></script>
 <script src="./js/app.js"></script>
+<script src="./js/actions.js"></script>
 </body>
 </html>

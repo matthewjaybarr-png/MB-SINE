@@ -16,7 +16,7 @@ test('surface-speed calculation uses one explicit basis', () => {
   assert.equal(fromRpm.rpm, 2500);
 });
 
-test('thread-mill feed includes cutting-edge count', () => {
+test('thread-mill feed includes cutting-edge count and is programmed at the tool centerline', () => {
   const result = calc.threadMill({
     threadMajorInches: 0.5,
     toolDiameterInches: 0.375,
@@ -25,8 +25,19 @@ test('thread-mill feed includes cutting-edge count', () => {
     chipLoad: 0.0015,
     pitchInches: 1 / 13,
   });
-  closeTo(result.feedIpm, 8.1);
+  closeTo(result.peripheryFeedIpm, 8.1);            // 1800 x 3 x .0015 at the cutting edge
   closeTo(result.centerlineDiameter, 0.125);
+  closeTo(result.compensationRatio, 0.25);          // .125 / .5
+  closeTo(result.feedIpm, 2.025);                   // what goes in the program (G41 off, centerline)
+});
+
+test('external thread-mill feed is scaled up at the centerline', () => {
+  const result = calc.threadMill({
+    threadMajorInches: 1, toolDiameterInches: 0.5, rpm: 2000, cuttingEdges: 4, chipLoad: 0.001,
+    pitchInches: 1 / 8, threadLocation: 'external',
+  });
+  closeTo(result.peripheryFeedIpm, 8);
+  closeTo(result.feedIpm, 12);                      // 8 x 1.5 / 1
 });
 
 test('thread-mill centerline supports internal and external threads', () => {
@@ -161,3 +172,23 @@ test('advanced geometry rejects impossible domains', () => {
   assert.throws(() => calc.scallopGeometry({solveFrom:'height', ballDiameter:1, scallopHeight:0.6}), /ball radius/);
   assert.throws(() => calc.boreStockPlan({currentDiameter:2, finishDiameter:1, maxRadialDepth:0.1}), /must exceed/);
 });
+
+test('cutting-tap drills match the standard 75 % chart sizes', () => {
+  const unc = (major, tpi) => calc.tapDrillRange('UNC', { major, pitch: tpi }, 'cut');
+  closeTo(unc(0.25, 20).typicalDec, 0.2013, 1e-4);         // #7 (.201)
+  closeTo(unc(0.5, 13).typicalDec, 0.4251, 1e-4);          // 27/64 (.4219)
+  closeTo(calc.tapDrillRange('METRIC', { major: 6, pitch: 1 }, 'cut').typicalDec * 25.4, 5.026, 1e-3); // 5.0 mm
+});
+
+test('form-tap drills are larger than cutting-tap drills and match published form-tap sizes', () => {
+  const quarter = calc.tapDrillRange('UNC', { major: 0.25, pitch: 20 }, 'form');
+  closeTo(quarter.typicalDec, 0.2279, 1e-4);               // #1 (.228) / 5.8 mm
+  assert.ok(quarter.minDec < quarter.typicalDec && quarter.typicalDec < quarter.maxDec);
+  closeTo(calc.tapDrillRange('UNF', { major: 0.19, pitch: 32 }, 'form').typicalDec, 0.1762, 1e-4);  // #16 (.177)
+  closeTo(calc.tapDrillRange('METRIC', { major: 6, pitch: 1 }, 'form').typicalDec * 25.4, 5.558, 1e-3); // 5.55 mm
+  for (const [type, t] of [['UNC', { major: 0.5, pitch: 13 }], ['METRIC', { major: 10, pitch: 1.5 }]]) {
+    assert.ok(calc.tapDrillRange(type, t, 'form').typicalDec > calc.tapDrillRange(type, t, 'cut').maxDec,
+      `${type} form drill must be larger than any cutting-tap drill`);
+  }
+});
+

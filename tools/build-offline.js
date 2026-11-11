@@ -6,7 +6,7 @@
  *   node tools/build-offline.js [repoRoot] [outFile]
  *
  * What it does:
- *   - inlines css/styles.css and js/data.js, core.js, workflow.js, app.js (same load order as index.html)
+ *   - inlines css/styles.css and js/host.js, data.js, core.js, workflow.js, app.js, actions.js (same load order as index.html)
  *   - removes the Google Fonts link and the web-app manifest link (neither works from a USB drive)
  *   - swaps the favicon for an inline data URI
  *   - leaves every calculation untouched; the result runs by double-clicking it (file://)
@@ -46,8 +46,8 @@ replaceOnce(
   "stylesheet link"
 );
 
-// Scripts: same order the page contract test enforces.
-const scripts = ["js/data.js", "js/core.js", "js/workflow.js", "js/app.js"];
+// Scripts: same order the page contract test enforces (host.js sits in <head>).
+const scripts = ["js/host.js", "js/data.js", "js/core.js", "js/workflow.js", "js/app.js", "js/actions.js"];
 for (const rel of scripts) {
   const tag = new RegExp(`<script src="\\./${rel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"></script>`);
   replaceOnce(tag, "<script>\n/* " + rel + " */\n" + safeScript(read(rel)) + "\n</script>", rel);

@@ -1,0 +1,54 @@
+What changed in each MB Sine version (newest first).
+
+== 1.1.0
+Ready for MB Forge and the MB suite
+- Sine runs inside MB Forge. npm run build:forge writes dist/forge/sine/,
+  a copy Forge can carry in its app (see docs/FORGE.md). Inside Forge it
+  uses Forge's graphite colours and font, needs no network and has no
+  service worker. The website looks and works as before.
+- No inline scripts or onclick handlers: buttons name their calculation in
+  data-click / data-change and js/actions.js runs it. Forge's security
+  policy blocks inline handlers, so this is what lets every button work
+  there. The Forge build refuses to finish if the page would break it.
+- Inside Forge, each new result is also sent to the Forge window as a
+  message (label, plain text, the Copy Result note). Forge decides what to
+  do with it; Sine never acts on messages sent to it.
+- Colours are named once at the top of styles.css, so the Forge theme
+  changes names, not rules.
+- Open the site with ?host=forge to preview the Forge look in a browser.
+- The offline cache name moved to mb-sine-v2 so installed copies pick up
+  the new files.
+
+Calculation audit (every section checked against standard references)
+- Form-tap drills were too small: they used the cutting-tap constant.
+  Form taps now use 0.68 x pitch at 55-75 % thread, so 1/4-20 gives #1
+  (.228) instead of about #3 (.213), and M6 x 1 gives 5.56 mm.
+- Thread mill feed was the feed at the cutting edge. The program needs the
+  feed at the tool centerline: a 1/2-13 internal thread with a .375 mill
+  showed 8.1 IPM where 2.025 IPM is right (4x too fast). Both are shown now,
+  and the machine-limit check uses the centerline feed.
+- Tap Drill Check: the smallest and largest drills are always inside the
+  calculated range, the thread-percent range is shown, and cutting taps
+  also show the standard chart tap drill.
+- Chamfer depth says "from the tool tip" when a tip diameter is entered.
+- Checked and unchanged: all 106 number and letter drill sizes, UNC, UNF
+  and metric thread data and chart tap drills, speeds, chip thinning,
+  helix, circular interpolation, effective diameter, scallop, true
+  position, bore stock, taper, bolt circle, triangle and conversions.
+
+Cleaned up
+- Countersink Depth Helper is part of Chamfer and Countersink Depth: give
+  a size per side or a top diameter (82 and 100 degree tools added).
+- Spot and Center Drill Helper and Drill Point Depth were the same
+  calculation: now one Point and Spot Depth card (drills 118/135/140,
+  spot drills, center drill). The Peck Guide has its own card.
+- Removed the 15/30/45/60 chamfer buttons (the angle list has them),
+  Basic Shop Math (percent of a number), repeated formula-table rows,
+  duplicate code and unused styles.
+Saved machine profiles and settings are unchanged.
+
+== 1.0.0
+- Renamed to MB Sine (on screen: Sine). Saved profiles and preferences
+  carry over from the old names.
+- Reliability audit, regression tests, user guide, offline single-file and
+  reference-sheet builds.

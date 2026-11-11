@@ -63,6 +63,10 @@ The speed calculations use the exact relationship:
 
 The familiar shop constant `3.82` is the rounded value of `12 / π`.
 
+Tap drills use `drill = major − K × pitch × thread fraction`: `K = 1.299038` for cutting taps (the familiar `0.01299 × % thread / TPI`, 65–80 % thread) and `K = 0.68` for form taps (`0.0068 × % thread / TPI`, 55–75 % thread). These reproduce the standard chart sizes, for example 1/4-20 cutting #7 (.201) and form #1 (.228), and M6 × 1 cutting 5.0 mm and form 5.55 mm.
+
+Thread milling and circular interpolation are programmed at the tool centerline: `centerline feed = edge feed × centerline diameter / feature diameter`, where the centerline diameter is the feature diameter minus the tool diameter inside and plus it outside.
+
 ## Update policy
 
 Any future preset-data change must include:

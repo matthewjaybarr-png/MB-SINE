@@ -78,9 +78,18 @@
     if (!['internal', 'external'].includes(threadLocation)) {
       throw new RangeError("Thread location must be internal or external.");
     }
+    // The chip load sets the feed at the cutting edge, on the thread major diameter. The machine
+    // is programmed at the tool centerline, which travels a smaller circle inside a thread
+    // (larger outside), so the programmed feed is scaled by centerline / major diameter.
+    // Programming the cutting-edge feed instead overfeeds an internal thread mill by major / (major - tool).
+    const centerlineDiameter = threadLocation === "internal" ? major - tool : major + tool;
+    const peripheryFeedIpm = feedFromChipLoad(rpm, cuttingEdges, chipLoad);
+    const compensationRatio = centerlineDiameter / major;
     return {
-      centerlineDiameter: threadLocation === "internal" ? major - tool : major + tool,
-      feedIpm: feedFromChipLoad(rpm, cuttingEdges, chipLoad),
+      centerlineDiameter,
+      compensationRatio,
+      peripheryFeedIpm,
+      feedIpm: peripheryFeedIpm * compensationRatio,
       pitchInches: pitch,
       threadLocation,
     };
@@ -109,17 +118,26 @@
       };
     }
 
-    const typicalPercent = tapStyle === "form" ? 0.55 : 0.75;
-    const minimumPercent = tapStyle === "form" ? 0.45 : 0.65;
-    const maximumPercent = tapStyle === "form" ? 0.65 : 0.80;
+    // Drill = major - K x pitch x thread percent.
+    //   Cutting tap: K = 1.299038 (= 0.01299 x %thread / TPI), 65-80 % thread, 75 % typical.
+    //   Form tap:    K = 0.68     (= 0.0068  x %thread / TPI), 55-75 % thread, 65 % typical.
+    // A form tap displaces metal instead of cutting it, so its drill is larger:
+    // 1/4-20 form tap at 65 % -> 0.2279 (#1 / 5.8 mm), M6 x 1 -> 5.56 mm.
+    const form = tapStyle === "form";
+    const constant = form ? 0.68 : 1.299038;
+    const typicalPercent = form ? 0.65 : 0.75;
+    const minimumPercent = form ? 0.55 : 0.65;
+    const maximumPercent = form ? 0.75 : 0.80;
     const major = Number(thread.major);
     const pitch = Number(thread.pitch);
     const divisor = threadType === "METRIC" ? 25.4 : 1;
     const pitchLength = threadType === "METRIC" ? pitch : 1 / pitch;
+    const drillFor = percent => (major - constant * pitchLength * percent) / divisor;
     return {
-      typicalDec: (major - (1.299038 * pitchLength * typicalPercent)) / divisor,
-      minDec: (major - (1.299038 * pitchLength * maximumPercent)) / divisor,
-      maxDec: (major - (1.299038 * pitchLength * minimumPercent)) / divisor,
+      typicalDec: drillFor(typicalPercent),
+      minDec: drillFor(maximumPercent),
+      maxDec: drillFor(minimumPercent),
+      percentRange: [minimumPercent, typicalPercent, maximumPercent],
       exact: false,
       note: tapStyle === "form"
         ? "Form-tap drill sizes are larger than cutting-tap sizes; verify with the tap manufacturer."

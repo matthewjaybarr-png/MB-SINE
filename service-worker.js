@@ -1,12 +1,14 @@
-const CACHE_NAME = "mb-sine-v1";
+const CACHE_NAME = "mb-sine-v2";
 const APP_ASSETS = [
   "./",
   "./index.html",
   "./css/styles.css",
+  "./js/host.js",
   "./js/data.js",
   "./js/core.js",
   "./js/workflow.js",
   "./js/app.js",
+  "./js/actions.js",
   "./manifest.webmanifest",
   "./icons/mb-sine.svg",
   "./icons/mb-sine-192.png",
