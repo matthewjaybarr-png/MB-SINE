@@ -117,7 +117,7 @@ if(existingIndex >= 0) machineProfiles[existingIndex] = profile;
 else machineProfiles.push(profile);
 machineProfiles.sort((a,b) => a.name.localeCompare(b.name));
 if(!writeStoredJson(MACHINE_STORAGE_KEY, machineProfiles)){
- renderMachineProfileStatus("This browser could not save the machine profile.", true);
+ renderMachineProfileStatus(inForge() ? "Forge could not save the machine profile." : "This browser could not save the machine profile.", true);
  return;
 }
 refreshMachineProfileSelect(profile.id);
@@ -125,6 +125,8 @@ writeStoredJson(ACTIVE_MACHINE_STORAGE_KEY, profile.id);
 selectMachineProfile();
 renderMachineProfileStatus(profile.name + " saved and active.", false);
 }
+// in MB Forge, profiles are kept by Forge (its web storage on this PC), not by a browser
+function inForge(){return typeof MBSine !== "undefined" && MBSine.host === "forge";}
 function deleteMachineProfile(){
 const profile = activeMachineProfile();
 if(!profile){
@@ -137,7 +139,7 @@ writeStoredJson(MACHINE_STORAGE_KEY, machineProfiles);
 writeStoredJson(ACTIVE_MACHINE_STORAGE_KEY, "");
 refreshMachineProfileSelect("");
 selectMachineProfile();
-renderMachineProfileStatus(profile.name + " deleted from this browser.", false);
+renderMachineProfileStatus(profile.name + (inForge() ? " deleted from Forge." : " deleted from this browser."), false);
 }
 function machineLimitMarkup(rpm, feedIpm){
 const profile = activeMachineProfile();
