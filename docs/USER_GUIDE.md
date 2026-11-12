@@ -12,7 +12,7 @@ Live calculator: [matthewjaybarr-png.github.io/MB-Sine](https://matthewjaybarr-p
 
 Create named machine profiles with optional maximum RPM and feed-IPM values. When a profile is active, applicable milling, drilling, turning, tapping, and thread-milling results show whether the calculation is within the saved limits.
 
-Profiles are saved in the current browser only. The calculator warns when a value exceeds a limit but does not alter the result.
+Profiles are saved in the current browser only (inside MB Forge: by Forge, on that PC). The calculator warns when a value exceeds a limit but does not alter the result.
 
 This section also lets you copy the latest calculation to the clipboard or download it as a text setup note.
 

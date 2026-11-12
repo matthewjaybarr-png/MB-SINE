@@ -66,6 +66,38 @@ test('Sine posts to a same-origin Forge parent only, and never to file://', () =
   assert.equal(host.connectToForge({ parent, location: { origin: 'null' } }, doc), false);
 });
 
+test('in Forge, the theme comes from the Forge page and follows its changes', () => {
+  const forgeVars = { '--panel': ' #151e40', '--red': '#f2668f', '--ui': '"MB Mono NL", Consolas, monospace' };
+  const top = {};
+  const parent = { document: { documentElement: top },
+    getComputedStyle: el => { assert.equal(el, top); return { getPropertyValue: n => forgeVars[n] || '' }; } };
+  const set = {};
+  const doc = { documentElement: { style: { setProperty: (n, v) => { set[n] = v; }, removeProperty: n => { delete set[n]; } } } };
+  let watch;
+  class MutationObserver { constructor(fn) { this.fn = fn; } observe(el, opts) { watch = { el, opts, fn: this.fn }; } }
+  assert.equal(host.followForgeTheme({ parent, MutationObserver }, doc), true);
+  assert.deepEqual(set, { '--forge-panel': '#151e40', '--forge-red': '#f2668f', '--forge-ui': '"MB Mono NL", Consolas, monospace' });
+  assert.equal(watch.el, top);
+  assert.deepEqual(watch.opts.attributeFilter, ['style', 'class']);
+  forgeVars['--ui'] = '"Consolas", monospace';   // Settings > Font
+  delete forgeVars['--red'];
+  watch.fn();
+  assert.equal(set['--forge-ui'], '"Consolas", monospace');
+  assert.equal('--forge-red' in set, false);
+
+  const crossOrigin = { get document() { throw new Error('SecurityError'); } };
+  assert.equal(host.followForgeTheme({ parent: crossOrigin }, doc), false);
+  const topLevel = {}; topLevel.parent = topLevel;
+  assert.equal(host.followForgeTheme(topLevel, doc), false);
+});
+
+test('every token styles.css reads from Forge is one host.js copies', () => {
+  const css = read('css/styles.css');
+  const used = new Set([...css.matchAll(/var\(--forge-([a-z-]+)/g)].map(m => m[1]));
+  assert.ok(used.size > 10);
+  for (const name of used) assert.ok(host.FORGE_TOKENS.includes(name), name);
+});
+
 test('the Forge build passes MB Forge\'s Content Security Policy and ships every asset', () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'sine-forge-'));
   try {

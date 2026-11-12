@@ -339,57 +339,91 @@ border-top:1px solid var(--line);
 
 /* ---------------------------------------------------------------- MB Forge
    <html data-host="forge">: Sine inside MB Forge (js/host.js, tools/build-forge.js).
-   Forge's graphite chrome and layout-fluid blue, its bundled font, compact radii.
-   The font files are Forge's own (ui/fonts), so Sine ships none; when Sine is not in
-   ui/vendor/sine/ the font falls back to Consolas. Only the look changes: no calculation does. */
+   Forge's own theme: js/host.js copies Forge's colour and font tokens (ui/app.css :root, and
+   the font Settings > Font picks) onto this page as --forge-*, so a new Forge theme or font
+   changes Sine too. The values after each comma are Forge's theme when there is no Forge page
+   to read (?host=forge in a browser). Red is only for Delete Profile; warnings are amber.
+   The font files are Forge's own (ui/fonts); away from Forge the font falls back to Consolas.
+   Only the look changes: no calculation does. */
 @font-face{font-family:"MB Mono NL";src:url(../../../fonts/JetBrainsMonoNLNerdFontMono-SemiBold.woff2) format("woff2");
 font-weight:600;font-style:normal;font-display:swap;}
 @font-face{font-family:"MB Mono NL";src:url(../../../fonts/JetBrainsMonoNLNerdFontMono-ExtraBold.woff2) format("woff2");
 font-weight:800;font-style:normal;font-display:swap;}
+@font-face{font-family:"MB Mono";src:url(../../../fonts/JetBrainsMonoNerdFontMono-SemiBold.woff2) format("woff2");
+font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:"MB Mono";src:url(../../../fonts/JetBrainsMonoNerdFontMono-ExtraBold.woff2) format("woff2");
+font-weight:800;font-style:normal;font-display:swap;}
 :root[data-host="forge"]{
 color-scheme:dark;
---bg:#262b32;
---card:#2c323a;
---line:#414955;
---text:#dfe3e8;
---muted:#97a1ad;
---accent:#2c5cb3;
---soft:#353c46;
---font:"MB Mono NL",Consolas,monospace;
+--f-chrome:var(--forge-chrome,#111936);
+--f-panel:var(--forge-panel,#151e40);
+--f-raised:var(--forge-raised,#1f2b58);
+--f-rule:var(--forge-rule,#34447f);
+--f-text:var(--forge-text,#d7dcf5);
+--f-bright:var(--forge-bright,#f0f2ff);
+--f-dim:var(--forge-dim,#9aa3d4);
+--f-dykem:var(--forge-dykem,#38bdfa);
+--f-dykem-deep:var(--forge-dykem-deep,#2456c8);
+--f-dykem-hover:var(--forge-dykem-hover,#2f68e0);
+--f-red:var(--forge-red,#f2668f);
+--f-green:var(--forge-green,#4fe0b0);
+--f-amber:var(--forge-amber,#f5c98a);
+--bg:var(--f-panel);
+--card:var(--f-panel);
+--line:var(--f-rule);
+--text:var(--f-text);
+--muted:var(--f-dim);
+--accent:var(--f-dykem-deep);
+--soft:var(--f-raised);
+--font:var(--forge-ui,"MB Mono NL",Consolas,monospace);
 --title-font:var(--font);
---title:#dfe3e8;
+--title:var(--f-bright);
 --title-glow:transparent;
---topbar-bg:#262b32;
---accent-line:#4a80e2;
---on-accent:#fff;
---field-bg:#14161b;
---field-text:#dfe3e8;
---field-off-bg:#353c46;
---field-off-text:#97a1ad;
---btn2-bg:#353c46;
+--topbar-bg:var(--f-panel);
+--accent-line:var(--f-dykem);
+--on-accent:var(--f-bright);
+--field-bg:var(--f-chrome);
+--field-text:var(--f-text);
+--field-off-bg:var(--f-raised);
+--field-off-text:var(--f-dim);
+--btn2-bg:var(--f-raised);
 --ghost-bg:transparent;
---btn-text:#dfe3e8;
+--btn-text:var(--f-text);
 --danger-bg:transparent;
---danger-text:#e2625b;
---danger-line:#e2625b;
---result-line:#414955;
---chip-bg:#353c46;
---chip-text:#97a1ad;
---ok-bg:#353c46;
---ok:#7cc48a;
---warn-bg:#353c46;
---warn-text:#e3a83d;
---bad:#e2625b;
---rule:#414955;
+--danger-text:var(--f-red);
+--danger-line:var(--f-red);
+--result-line:var(--f-rule);
+--chip-bg:var(--f-raised);
+--chip-text:var(--f-dim);
+--ok-bg:var(--f-raised);
+--ok:var(--f-green);
+--warn-bg:var(--f-raised);
+--warn-text:var(--f-amber);
+--bad:var(--f-amber);
+--rule:var(--f-rule);
+scrollbar-color:var(--f-rule) var(--f-chrome);
 }
-:root[data-host="forge"] body{font-weight:600;font-size:13px;}
+/* Forge's panel sizes: 13px text, 12px labels and notes, 14px headings */
+:root[data-host="forge"] body{font-weight:var(--forge-ui-weight,600);font-size:13px;line-height:1.4;}
 :root[data-host="forge"] .topbar{padding:6px 10px;box-shadow:none;}
+/* a jump to a section stops just below the top bar, however many rows its tabs take (trackTopbar) */
+html[data-host="forge"]{scroll-padding-top:calc(var(--topbar-h,90px) + 6px);}
+:root[data-host="forge"] .sectionhead{scroll-margin-top:0;}
 :root[data-host="forge"] .topbar h1{font-size:15px;letter-spacing:.2em;margin:0 0 6px;font-weight:800;}
-:root[data-host="forge"] .nav{justify-content:flex-start;gap:4px;}
-:root[data-host="forge"] .nav a{background:transparent;border-color:transparent;border-radius:4px;color:#dfe3e8;font-weight:600;}
-:root[data-host="forge"] .nav a:hover{background:#353c46;border-color:#414955;}
-:root[data-host="forge"] .card{border-radius:6px;}
-:root[data-host="forge"] .sectionhead{border-radius:4px;border-left-width:4px;border-left-color:#4a80e2;font-size:15px;}
+/* every section tab shows at any panel width: the tabs wrap, nothing scrolls sideways */
+:root[data-host="forge"] .nav{flex-wrap:wrap;overflow-x:visible;justify-content:flex-start;gap:2px 4px;padding-bottom:0;}
+:root[data-host="forge"] .nav a{background:transparent;border-color:transparent;border-radius:4px;color:var(--f-text);
+font-size:13px;font-weight:inherit;padding:4px 9px;}
+:root[data-host="forge"] .nav a:hover{background:var(--f-raised);border-color:var(--f-rule);}
+:root[data-host="forge"] .wrap{padding:8px;}
+/* a table too wide for a narrow panel scrolls inside its card, never the whole page */
+:root[data-host="forge"] .card{border-radius:6px;padding:10px;min-width:0;overflow-x:auto;}
+:root[data-host="forge"] .card h2{font-size:14px;font-weight:800;}
+:root[data-host="forge"] .card h3{font-size:13px;font-weight:800;}
+:root[data-host="forge"] .sectionhead{border-radius:4px;border-left-width:4px;border-left-color:var(--f-dykem);font-size:14px;}
+:root[data-host="forge"] label,
+:root[data-host="forge"] .note{font-size:12px;}
+:root[data-host="forge"] .note{color:var(--f-dim);}
 :root[data-host="forge"] input,
 :root[data-host="forge"] select,
 :root[data-host="forge"] button,
@@ -399,11 +433,18 @@ color-scheme:dark;
 :root[data-host="forge"] input,
 :root[data-host="forge"] select,
 :root[data-host="forge"] button,
-:root[data-host="forge"] textarea{font-family:inherit;font-weight:600;}
-:root[data-host="forge"] button:not(:disabled):hover{border-color:#4a80e2;}
+:root[data-host="forge"] textarea{font-family:inherit;font-weight:inherit;font-size:13px;min-width:0;}
+:root[data-host="forge"] button:not(:disabled):hover{border-color:var(--f-dykem);}
+:root[data-host="forge"] button:not(.secondary):not(.ghost):not(.danger):not(:disabled):hover{background:var(--f-dykem-hover);}
+:root[data-host="forge"] button.secondary:not(:disabled):hover,
+:root[data-host="forge"] button.ghost:not(:disabled):hover{background:var(--f-raised);}
 :root[data-host="forge"] button.secondary,
-:root[data-host="forge"] button.ghost{border-color:#414955;}
+:root[data-host="forge"] button.ghost{border-color:var(--f-rule);}
+:root[data-host="forge"] button.danger:not(:disabled):hover{border-color:var(--f-red);}
 :root[data-host="forge"] .quick button{border-radius:4px;}
-:root[data-host="forge"] :focus-visible{outline:2px solid #4a80e2;outline-offset:1px;}
+:root[data-host="forge"] :focus-visible{outline:2px solid var(--f-dykem);outline-offset:1px;}
 /* Forge ships the files; there is no online/offline state to report */
 :root[data-host="forge"] #connectionStatus{display:none;}
+/* text that names where Sine runs: data-only="web" on the website, data-only="forge" in Forge */
+:root[data-host="forge"] [data-only="web"],
+:root:not([data-host="forge"]) [data-only="forge"]{display:none;}
