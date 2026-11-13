@@ -55,8 +55,8 @@ Forge can show it either way:
 When Sine runs in a frame of a Forge page from the same origin, it posts these with `window.parent.postMessage(message, location.origin)`:
 
 ```js
-{ source: "mb-sine", type: "ready",  version: "1.2.0" }   // the calculator is ready
-{ source: "mb-sine", type: "result", version: "1.2.0",
+{ source: "mb-sine", type: "ready",  version: "1.2.1" }   // the calculator is ready
+{ source: "mb-sine", type: "result", version: "1.2.1",
   label: "Milling and Drilling Calculator",              // the card the result came from
   machine: "No machine profile selected",                // Sine's active machine profile name
   text: "Basis: entered SFM\nRPM: 573\n...",             // the result, plain text

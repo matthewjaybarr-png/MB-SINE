@@ -1,6 +1,6 @@
 What changed in each MB Sine version (newest first).
 
-== Next (not released yet)
+== 1.2.1
 Shop tools the shop actually runs, beside the calculators
 - Threads and Taps: the shop's taps for the selected thread, from the
   toolbooks. Picking one fills the tap card: thread, cut or form tap, and

@@ -1,4 +1,4 @@
-const CACHE_NAME = "mb-sine-v3";
+const CACHE_NAME = "mb-sine-v4";
 const APP_ASSETS = [
   "./",
   "./index.html",
