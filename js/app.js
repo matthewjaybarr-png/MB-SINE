@@ -466,6 +466,7 @@ calcMain();
 }
 
 function calcMain(){
+renderShopSizeTools();
 const d = toolDiaInches();
 const flutes = num("flutes");
 const type = gid("calcType").value;
@@ -813,10 +814,12 @@ sel.selectedIndex = 0;
 syncThreadToolsFromTap();
 }
 
+// "custom" is the option a shop tap adds when the chart doesn't list its thread
+function threadAt(threads, value){ return value === "custom" && shopCustomThread ? shopCustomThread : threads[parseInt(value || 0,10)] || threads[0]; }
 function selectedThread(){
 const type = gid("threadType").value;
 const threads = currentThreadArrayFromType(type);
-return {type, thread:threads[parseInt(gid("threadSelect").value || 0,10)] || threads[0]};
+return {type, thread:threadAt(threads, gid("threadSelect").value)};
 }
 
 function syncThreadToolsFromTap(){
@@ -880,11 +883,11 @@ return unique.slice(0,6);
 
 
 function calcTapSearch(){
-const idx = parseInt(gid("threadSelect").value || 0,10);
+const idx = gid("threadSelect").value === "custom" ? "custom" : parseInt(gid("threadSelect").value || 0,10);
 const arr = currentThreadArrayFromType(gid("threadType").value);
 const type = gid("threadType").value;
 const tapStyle = gid("tapStyle").value;
-const t = arr[idx] || arr[0];
+const t = threadAt(arr, gid("threadSelect").value);
 if(!t){
  gid("tapResult").innerHTML = "No matching thread found.";
  return;
@@ -892,6 +895,7 @@ if(!t){
 const range = MBCalc.tapDrillRange(type, t, tapStyle);
 if(range.unsupported){
  gid("tapResult").textContent = range.note;
+ renderShopThreadTools(type, idx, null);
  return;
 }
 // chart drills inside the calculated range; the ends are never outside it
@@ -934,6 +938,7 @@ if(raw){
 }
 out += range.note;
 gid("tapResult").innerHTML = out;
+renderShopThreadTools(type, idx, range.exact ? {minDec:t.tapDec - 0.003, maxDec:t.tapDec + 0.003, typicalDec:t.tapDec} : range);
 }
 
 function calcNptHelper(){
@@ -1029,6 +1034,7 @@ gid("tapSpeedResult").innerHTML =
 "Calculated SFM: " + round(sfm,1) + "<br>" +
 "Feed per revolution: " + round(pitchIn,5) + " in/rev (" + round(mmPerRev,4) + " mm/rev)<br>" +
 "Calculated feed: " + round(ipm,4) + " IPM (" + round(mmMin,2) + " mm/min)" +
+(shopTapSfm && Math.abs(sfm - shopTapSfm.sfm) < 0.05 ? "<br>SFM is the shop's own, from the toolbook: " + escapeHtml(shopTapSfm.label) : "") +
 machineLimitMarkup(rpm, ipm);
 }
 
@@ -1533,6 +1539,8 @@ const facts = [
 ["Chamfer angle", t.angle ? t.angle + "° per side (" + t.angle * 2 + "° included)" : ""],
 ["Teeth (inserts)", t.teeth],
 ["Proven in the toolbook", t.rpm ? "S " + t.rpm + "  F " + t.ipm : ""],
+["Toolbook SFM / FPT", t.sfm ? t.sfm + " / " + t.fpt : ""],
+["Tap", t.kind === "tap" ? (t.form ? "Form tap" : "Cutting tap") + (t.major && !shopThreadMatch(t) ? " (not in the thread chart: major and pitch go in as custom)" : "") : ""],
 ["Coolant", t.coolant],
 ];
 const uses = [];
@@ -1540,6 +1548,7 @@ if(t.dia && ["drill","mill","ream","spot","bore"].includes(t.kind)) uses.push(["
 if(t.dia && t.kind === "drill") uses.push(["spot","Spot drill (as the follow drill)"]);
 if(t.dia && t.kind === "chamfer") uses.push(["chamfer","Chamfer"]);
 if(t.dia && t.kind === "threadmill") uses.push(["threadmill","Thread Mill"]);
+if(t.kind === "tap" && t.major) uses.push(["tap","Threads and Taps"]);
 gid("shopToolDetail").hidden = false;
 gid("shopToolDetail").innerHTML = "<b>" + escapeHtml(t.desc) + "</b><br>" +
 facts.filter(f => f[1]).map(f => escapeHtml(f[0]) + ": " + escapeHtml(f[1])).join("<br>") +
@@ -1548,14 +1557,18 @@ facts.filter(f => f[1]).map(f => escapeHtml(f[0]) + ": " + escapeHtml(f[1])).joi
 }
 function useShopTool(target){
 const t = shopToolPicked;
-if(!t || !t.dia) return;
+if(!t || !(t.dia || (target === "tap" && t.major))) return;
 const set = (id, value) => { gid(id).value = value; };
 if(target === "main"){
-set("calcType", t.kind === "mill" ? "endmill" : "drill");
+if(!(t.kind === "mill" && ["endmill","face45","shoulder90"].includes(gid("calcType").value))) set("calcType", t.kind === "mill" ? "endmill" : "drill");
 set("units", "inch");
 set("toolDia", t.dia);
+toggleCalcType();
 if(t.teeth) set("flutes", t.teeth);
-toggleCalcType(); calcMain();
+// the toolbook's own SFM; FPT only on mills, since on a drill the toolbook doesn't say per flute or per rev
+if(t.sfm){ set("speedBasis", "sfm"); updateSpeedBasisUI("main"); set("sfm", t.sfm); set("rpm", ""); }
+if(t.fpt && t.kind === "mill") set("fpt", t.fpt);
+calcMain();
 gid("toolDia").scrollIntoView({block:"center"});
 } else if(target === "spot"){
 set("followDrillDia", t.dia); calcSpotDrill();
@@ -1570,7 +1583,88 @@ set("tmToolDia", t.dia);
 if(t.teeth) set("tmFlutes", t.teeth);
 calcThreadMill();
 gid("tmToolDia").scrollIntoView({block:"center"});
+} else if(target === "tap"){
+const match = shopThreadMatch(t);
+const current = gid("threadType").value;
+const type = match ? match.type : t.std === "metric" ? "METRIC" : current === "METRIC" || current === "NPT" ? "UNC" : current;
+if(current !== type){ set("threadType", type); loadThreadChart(); }
+if(match) set("threadSelect", match.index);
+else if(t.std !== "npt" && t.pitch){
+ // a thread the chart doesn't list (1 1/8-12, 3/8-18): add it to the list as a custom thread
+ shopCustomThread = {thread:t.thread + " (shop tap, not in chart)", major:t.major, pitch:t.pitch};
+ const sel = gid("threadSelect");
+ if(sel.options[sel.options.length - 1].value === "custom") sel.remove(sel.options.length - 1);
+ sel.add(new Option(shopCustomThread.thread, "custom"));
+ set("threadSelect", "custom");
 }
+set("tapStyle", t.form ? "form" : "cut");
+syncThreadToolsFromTap();
+shopTapSfm = t.sfm ? {sfm:t.sfm, label:t.book + " T" + t.id + " " + t.desc} : null;
+if(t.sfm){ set("tapSpeedBasis", "sfm"); updateSpeedBasisUI("tap"); set("tapCalcSfm", t.sfm); set("tapCalcRpm", ""); calcTapSpeedFeed(); }
+else applyTapPreset();
+gid("threadSelect").scrollIntoView({block:"center"});
+}
+}
+let shopTapSfm = null, shopCustomThread = null;
+// "1 1/4" -> 1.25
+const sizeValue = s => String(s).split(" ").reduce((a, part) => a + (part.includes("/") ? part.split("/")[0] / part.split("/")[1] : +part), 0);
+/** A shop tap's place in the thread chart: {type, index}, or null when the chart doesn't list it. */
+function shopThreadMatch(t){
+if(!t || t.kind !== "tap" || !t.major) return null;
+const near = (a, b) => Math.abs(a - b) < 0.002;
+const find = (type, ok) => { const index = currentThreadArrayFromType(type).findIndex(ok); return index < 0 ? null : {type, index}; };
+if(t.std === "metric") return find("METRIC", x => near(x.major, t.major) && near(x.pitch, t.pitch));
+if(t.std === "npt") return find("NPT", x => near(sizeValue(x.size), t.major));
+return find("UNC", x => near(x.major, t.major) && x.pitch === t.pitch) || find("UNF", x => near(x.major, t.major) && x.pitch === t.pitch);
+}
+// one button per shop tool; use = "tap" or "main" also fills that card from it
+const shopRef = (t, i, use) => '<button class="ghost shop-tool" type="button" data-click="pickShopTool(' + i + ')' + (use ? "; useShopTool('" + use + "')" : "") + '"><b>' + escapeHtml(t.book + " T" + t.id) + "</b> " + escapeHtml(t.desc) +
+(t.machines.length ? " · machines " + escapeHtml(t.machines.join(", ")) : "") + (t.sfm ? " · toolbook SFM " + t.sfm + (t.fpt ? " / FPT " + t.fpt : "") : "") + "</button>";
+/** Under Thread Setup: the shop's taps for the selected thread, and the shop's drills inside its tap-drill range. */
+function renderShopThreadTools(type, index, range){
+const box = gid("tapShopTools");
+const list = shopToolList();
+if(!box || !list.length) return;
+const taps = [];
+list.forEach((t, i) => {
+ const m = shopThreadMatch(t);
+ if(index === "custom" ? !m && t.major === shopCustomThread.major && t.pitch === shopCustomThread.pitch : m && m.type === type && m.index === index) taps.push(i);
+});
+let html = "<b>Shop taps for this thread</b>" + (taps.length
+? '<div class="note">From the Hive toolbooks. Pick one to fill the tap card with its tap style and toolbook SFM.</div>' +
+  taps.map(i => shopRef(list[i], i, "tap")).join("")
+: '<div class="note">No toolbook lists a tap for this thread.</div>');
+if(range){
+ const sizes = new Map();
+ list.forEach((t, i) => {
+  if(t.kind !== "drill" || !t.dia || t.dia < range.minDec - 0.00001 || t.dia > range.maxDec + 0.00001) return;
+  const key = round(t.dia, 4);
+  sizes.set(key, (sizes.get(key) || []).concat(i));
+ });
+ const order = [...sizes.keys()].sort((a, b) => Math.abs(a - range.typicalDec) - Math.abs(b - range.typicalDec));
+ html += "<b>Shop drills in the tap-drill range</b>" + (order.length
+ ? order.slice(0, 6).map(d => '<div class="note">' + d + " in (" + round(d * 25.4, 3) + " mm): " + sizes.get(d).length + " in the toolbooks</div>" +
+   sizes.get(d).slice(0, 4).map(i => shopRef(list[i], i)).join("")).join("")
+ : '<div class="note">No toolbook drill falls in this range.</div>');
+}
+box.innerHTML = html;
+box.hidden = false;
+}
+/** Under Milling and Drilling: shop tools of this kind at the entered diameter, with their toolbook SFM/FPT. */
+function renderShopSizeTools(){
+const box = gid("mainShopTools");
+const list = shopToolList();
+if(!box || !list.length) return;
+const d = toolDiaInches();
+const kind = gid("calcType").value === "drill" ? "drill" : "mill";
+const hits = [];
+if(d > 0) list.forEach((t, i) => { if(t.kind === kind && t.dia && Math.abs(t.dia - d) < 0.0006) hits.push(i); });
+hits.sort((a, b) => (list[b].sfm ? 1 : 0) - (list[a].sfm ? 1 : 0));
+box.hidden = !hits.length;
+box.innerHTML = hits.length ? "<b>Shop " + kind + "s at this size</b>" +
+ (hits.some(i => list[i].sfm) ? '<div class="note">Pick one with a toolbook SFM to run the calculator at the shop\'s speed.</div>' : "") +
+ hits.slice(0, 8).map(i => shopRef(list[i], i, list[i].sfm ? "main" : "")).join("") +
+ (hits.length > 8 ? '<div class="note">' + (hits.length - 8) + " more in Shop Tools.</div>" : "") : "";
 }
 
 populateMaterials();

@@ -1,5 +1,21 @@
 What changed in each MB Sine version (newest first).
 
+== Next (not released yet)
+Shop tools the shop actually runs, beside the calculators
+- Threads and Taps: the shop's taps for the selected thread, from the
+  toolbooks. Picking one fills the tap card: thread, cut or form tap, and
+  the toolbook's own SFM (391-392 SFM/FPT lines). A tap the chart doesn't
+  list (1 1/8-12, 3/8-18) goes in as a custom thread, with its own drill
+  range. The shop's drills inside the tap-drill range are listed too.
+- Milling and Drilling: the shop's drills or mills at the entered
+  diameter. Picking one with a toolbook SFM runs the calculator at it (and
+  at its FPT on mills; on drills the toolbook doesn't say per rev or per
+  flute, so the feed is left to the preset).
+- The toolbook importer reads tap threads written the shop's ways (10-24,
+  1-1/8 - 12, 1.8750-12, 1/2" NPT, 12 X 1.75 MM), form taps, and the
+  SFM/FPT line. Mills listed with one insert (solid or screw-on heads) no
+  longer get a tooth count of 1.
+
 == 1.2.0
 Shop tools, Windows app and a second calculation audit
 - Shop Tools (Shop Setup): the shop's own tools from the Hive toolbooks
