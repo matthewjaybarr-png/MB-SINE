@@ -47,6 +47,11 @@ replaceOnce(
 );
 
 // Scripts: same order the page contract test enforces (host.js sits in <head>).
+// The shop's own tool list (gitignored, from tools/import-hive.mjs) goes in before app.js when it exists.
+const shopTools = path.join(root, "shop", "tools.js");
+if (fs.existsSync(shopTools)) {
+  replaceOnce(/<script src="\.\/js\/app\.js"><\/script>/, "<script>\n/* shop/tools.js */\n" + safeScript(fs.readFileSync(shopTools, "utf8")) + "\n</script>\n<script src=\"./js/app.js\"></script>", "app.js script (shop tools)");
+}
 const scripts = ["js/host.js", "js/data.js", "js/core.js", "js/workflow.js", "js/app.js", "js/actions.js"];
 for (const rel of scripts) {
   const tag = new RegExp(`<script src="\\./${rel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"></script>`);

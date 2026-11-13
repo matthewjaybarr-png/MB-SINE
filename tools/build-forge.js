@@ -70,13 +70,19 @@ function gitCommit() {
   }
 }
 
-function build(outDir) {
+// The shop's own tool list (gitignored, from tools/import-hive.mjs) goes in when it exists, never on the public site.
+const SHOP_TOOLS = path.join(root, "shop", "tools.js");
+const withShopTools = html => html.replace('<script src="./js/app.js"></script>', '<script src="./js/shop-tools.js"></script>\n<script src="./js/app.js"></script>');
+
+function build(outDir, shopTools = SHOP_TOOLS) {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
   const commit = process.env.SINE_COMMIT || gitCommit();
   const built = new Date().toISOString().slice(0, 10);
   const stamp = `Sine (MB Sine) ${pkg.version} for MB Forge. Source commit ${commit}. Built ${built}.`;
 
-  const html = forgePage(fs.readFileSync(path.join(root, "index.html"), "utf8"), stamp);
+  const shop = fs.existsSync(shopTools);
+  let html = forgePage(fs.readFileSync(path.join(root, "index.html"), "utf8"), stamp);
+  if (shop) html = withShopTools(html);
   const problems = checkForgePolicy(html);
   if (problems.length) throw new Error("Page would break MB Forge's Content Security Policy:\n  " + problems.join("\n  "));
 
@@ -86,16 +92,17 @@ function build(outDir) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.copyFileSync(path.join(root, rel), dest);
   }
+  if (shop) fs.copyFileSync(shopTools, path.join(outDir, "js", "shop-tools.js"));
   fs.writeFileSync(path.join(outDir, "index.html"), html);
   fs.writeFileSync(path.join(outDir, "VERSION.json"),
     JSON.stringify({ name: "MB Sine", version: pkg.version, commit, built }, null, 2) + "\n");
-  return { outDir, version: pkg.version, commit };
+  return { outDir, version: pkg.version, commit, shop };
 }
 
 if (require.main === module) {
   const outDir = path.resolve(process.argv[2] || path.join(root, "dist", "forge", "sine"));
   const result = build(outDir);
-  console.log(`Wrote ${result.outDir} (Sine ${result.version}, ${result.commit})`);
+  console.log(`Wrote ${result.outDir} (Sine ${result.version}, ${result.commit}${result.shop ? ", with shop tools" : ""})`);
 }
 
 module.exports = { ASSETS, forgePage, checkForgePolicy, build };

@@ -467,3 +467,7 @@ color-scheme:dark;
 :root[data-host="forge"] .nav{top:42px;}
 :root[data-host="forge"] .result-rail{position:static;top:auto;}
 }
+
+/* Shop Tools (installer and Forge builds only) */
+.shop-tool-list{display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;margin:10px 0;}
+.shop-tool-list button.shop-tool{text-align:left;width:100%;white-space:normal;}

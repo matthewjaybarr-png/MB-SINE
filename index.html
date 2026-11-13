@@ -57,6 +57,17 @@
 </div>
 <div class="result result-info" id="machineProfileStatus">No machine limits selected.</div>
 </div>
+<div class="card" id="shopToolsCard" hidden>
+<h2>Shop Tools</h2>
+<div class="note" id="shopToolsNote"></div>
+<div class="row3">
+<div><label for="shopToolSearch">Search description, part or maker</label><input id="shopToolSearch" type="search" data-change="searchShopTools()"/></div>
+<div><label for="shopToolBook">Toolbook</label><select id="shopToolBook" data-change="searchShopTools()"><option value="">All toolbooks</option></select></div>
+<div><label for="shopToolKind">Kind</label><select id="shopToolKind" data-change="searchShopTools()"><option value="">All kinds</option><option value="drill">Drill</option><option value="mill">Mill</option><option value="chamfer">Chamfer</option><option value="spot">Spot or center drill</option><option value="threadmill">Thread mill</option><option value="tap">Tap</option><option value="bore">Boring bar</option><option value="ream">Reamer</option><option value="other">Other</option></select></div>
+</div>
+<div class="shop-tool-list" id="shopToolResults"></div>
+<div class="result result-info" id="shopToolDetail" hidden></div>
+</div>
 <div class="sectionhead" id="speeds">Speeds and Feeds</div>
 <div class="grid2 compact-grid">
 <div class="card">

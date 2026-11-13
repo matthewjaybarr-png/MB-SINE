@@ -1492,11 +1492,91 @@ MBWorkflow.migrateLegacyKeys(window.localStorage, {
 "grCalculator.activeMachine.v1": ACTIVE_MACHINE_STORAGE_KEY,
 "grCalculator.preferences.v1": PREFERENCE_STORAGE_KEY
 });
+// Shop Tools: the shop's own toolbook list. Only the installer and Forge builds carry it (shop/tools.js);
+// on the public site MBShopTools is missing and the card stays hidden.
+function shopToolList(){ return (globalThis.MBShopTools && Array.isArray(globalThis.MBShopTools.tools)) ? globalThis.MBShopTools.tools : []; }
+let shopToolPicked = null;
+function initializeShopTools(){
+const data = globalThis.MBShopTools;
+if(!shopToolList().length) return;
+gid("shopToolsCard").hidden = false;
+gid("shopToolsNote").textContent = shopToolList().length + " tools from the Hive toolbooks (built " + data.built + "). Sizes are read from the toolbook text, so check them against the description before using a result.";
+(data.books || []).forEach(b => gid("shopToolBook").add(new Option(b.name + " (" + b.count + ")", b.name)));
+searchShopTools();
+}
+function searchShopTools(){
+const words = gid("shopToolSearch").value.toUpperCase().split(/\s+/).filter(Boolean);
+const book = gid("shopToolBook").value, kind = gid("shopToolKind").value;
+const hits = [];
+shopToolList().forEach((t, i) => {
+if((book && t.book !== book) || (kind && t.kind !== kind)) return;
+const text = [t.desc, t.maker, "T" + t.id, ...t.lines].join(" ").toUpperCase();
+if(words.every(w => text.includes(w))) hits.push(i);
+});
+const shown = hits.slice(0, 60).map(i => {
+const t = shopToolList()[i];
+return '<button class="ghost shop-tool" type="button" data-click="pickShopTool(' + i + ')"><b>' + escapeHtml(t.book + " T" + t.id) + "</b> " + escapeHtml(t.desc) + "</button>";
+}).join("");
+gid("shopToolResults").innerHTML = shown + (hits.length > 60 ? '<div class="note">' + (hits.length - 60) + " more. Narrow the search.</div>" : hits.length ? "" : '<div class="note">No tools match.</div>');
+}
+function pickShopTool(index){
+const t = shopToolList()[index];
+if(!t) return;
+shopToolPicked = t;
+const facts = [
+["Toolbook", t.book + ", tool " + t.id + (t.machines.length ? " (machines " + t.machines.join(", ") + ")" : "")],
+["Maker", t.maker],
+["Diameter read", t.dia ? round(t.dia, 4) + " in" : ""],
+["Thread", t.thread],
+["Chamfer angle", t.angle ? t.angle + "° per side (" + t.angle * 2 + "° included)" : ""],
+["Teeth (inserts)", t.teeth],
+["Proven in the toolbook", t.rpm ? "S " + t.rpm + "  F " + t.ipm : ""],
+["Coolant", t.coolant],
+];
+const uses = [];
+if(t.dia && ["drill","mill","ream","spot","bore"].includes(t.kind)) uses.push(["main","Milling and Drilling"]);
+if(t.dia && t.kind === "drill") uses.push(["spot","Spot drill (as the follow drill)"]);
+if(t.dia && t.kind === "chamfer") uses.push(["chamfer","Chamfer"]);
+if(t.dia && t.kind === "threadmill") uses.push(["threadmill","Thread Mill"]);
+gid("shopToolDetail").hidden = false;
+gid("shopToolDetail").innerHTML = "<b>" + escapeHtml(t.desc) + "</b><br>" +
+facts.filter(f => f[1]).map(f => escapeHtml(f[0]) + ": " + escapeHtml(f[1])).join("<br>") +
+(t.lines.length ? "<br>" + t.lines.map(escapeHtml).join("<br>") : "") +
+(uses.length ? '<div class="workflow-actions">' + uses.map(u => '<button type="button" data-click="useShopTool(\'' + u[0] + '\')">Use in ' + escapeHtml(u[1]) + "</button>").join("") + "</div>" : "");
+}
+function useShopTool(target){
+const t = shopToolPicked;
+if(!t || !t.dia) return;
+const set = (id, value) => { gid(id).value = value; };
+if(target === "main"){
+set("calcType", t.kind === "mill" ? "endmill" : "drill");
+set("units", "inch");
+set("toolDia", t.dia);
+if(t.teeth) set("flutes", t.teeth);
+toggleCalcType(); calcMain();
+gid("toolDia").scrollIntoView({block:"center"});
+} else if(target === "spot"){
+set("followDrillDia", t.dia); calcSpotDrill();
+gid("followDrillDia").scrollIntoView({block:"center"});
+} else if(target === "chamfer"){
+set("chamferToolMaxDia", t.dia);
+if(t.angle && [...gid("chamferAngle").options].some(o => +o.value === t.angle * 2)) set("chamferAngle", t.angle * 2);
+calcChamfer();
+gid("chamferToolMaxDia").scrollIntoView({block:"center"});
+} else if(target === "threadmill"){
+set("tmToolDia", t.dia);
+if(t.teeth) set("tmFlutes", t.teeth);
+calcThreadMill();
+gid("tmToolDia").scrollIntoView({block:"center"});
+}
+}
+
 populateMaterials();
 populateTapWorkMaterials();
 populateDrillTable();
 loadThreadChart();
 initializeMachineProfiles();
+initializeShopTools();
 restoreShopPreferences();
 toggleCalcType();
 updateSpeedBasisUI("main");

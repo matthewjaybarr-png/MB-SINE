@@ -91,3 +91,21 @@ test('the policy check catches what Forge would block', () => {
   assert.equal(problems.length, 4, problems.join('\n'));
   assert.deepEqual(forge.checkForgePolicy('<a href="https://example.com/doc" target="_blank">doc</a><script src="./js/app.js"></script>'), []);
 });
+
+test('the shop tool list goes into the Forge build only when it exists, before app.js', () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'sine-forge-'));
+  const shop = path.join(out, 'shop.js');
+  try {
+    forge.build(path.join(out, 'a'), path.join(out, 'missing.js'));
+    assert.doesNotMatch(fs.readFileSync(path.join(out, 'a', 'index.html'), 'utf8'), /shop-tools/);
+    fs.writeFileSync(shop, 'globalThis.MBShopTools = {tools: []};\n');
+    forge.build(path.join(out, 'b'), shop);
+    const html = fs.readFileSync(path.join(out, 'b', 'index.html'), 'utf8');
+    assert.deepEqual(forge.checkForgePolicy(html), []);
+    assert.match(html, /<script src="\.\/js\/shop-tools\.js"><\/script>\s*<script src="\.\/js\/app\.js">/);
+    assert.equal(fs.readFileSync(path.join(out, 'b', 'js', 'shop-tools.js'), 'utf8'), fs.readFileSync(shop, 'utf8'));
+    assert.doesNotMatch(read('index.html'), /shop-tools\.js|shop\/tools/, 'the public page never names the shop tool list');
+  } finally {
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});

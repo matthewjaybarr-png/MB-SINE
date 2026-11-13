@@ -14,6 +14,7 @@ This writes `dist/forge/sine/`:
 | --- | --- |
 | `index.html` | The calculator page, marked `<html data-host="forge">` |
 | `css/styles.css`, `js/*.js`, `icons/mb-sine.svg` | The same files the website uses, copied unchanged |
+| `js/shop-tools.js` | Only when `shop/tools.js` exists (see below) |
 | `VERSION.json` | `{ "name", "version", "commit", "built" }` for Forge's version notes |
 
 To build straight into a Forge checkout next to this one:
@@ -23,6 +24,10 @@ npm run build:forge -- "../MB-Editor/ui/vendor/sine"
 ```
 
 The build stops with an error if the page would break Forge's Content Security Policy (`script-src 'self'`, nothing from the internet). Sine does not use inline scripts or inline event handlers: buttons name their calculation in `data-click` / `data-change`, and `js/actions.js` runs it.
+
+## Shop tools
+
+`npm run import:hive` reads the Hive toolbooks through MB Toolbook's importer and writes `shop/tools.js`. That file is gitignored because tool lists carry job, quote and part numbers and this repository is public. When it exists, `build:forge` and `build:offline` (and so the Windows installer) add it, and a Shop Tools card appears under Shop Setup. The public site never loads it. Sizes are read from the toolbook text and shown next to it; the toolbooks hold no maker speeds and feeds, only the odd proven `S = / F =` note.
 
 ## What changes inside Forge
 
