@@ -27,7 +27,7 @@ The build stops with an error if the page would break Forge's Content Security P
 
 ## Shop tools
 
-`npm run import:hive` reads the Hive toolbooks through MB Toolbook's importer and writes `shop/tools.js`. That file is gitignored because tool lists carry job, quote and part numbers and this repository is public. When it exists, `build:forge` and `build:offline` (and so the Windows installer) add it, and a Shop Tools card appears under Shop Setup. The public site never loads it. Sizes are read from the toolbook text and shown next to it; the toolbooks hold no maker speeds and feeds, only the odd proven `S = / F =` note.
+`npm run import:hive` reads the Hive toolbooks through MB Toolbook's importer and writes `shop/tools.js`. That file is gitignored because tool lists carry job, quote and part numbers and this repository is public. When it exists, `build:forge` and `build:offline` (and so the Windows installer) add it, and a Shop Tools card appears under Shop Setup. The public site never loads it. Sizes are read from the toolbook text and shown next to it; the toolbooks hold no maker speeds and feeds. The 391-392 book's `SFM/FPT:` lines (the speed and feed the shop runs) and the odd proven `S = / F =` note are carried, and the Threads and Taps and Milling and Drilling cards list the shop's tools for the current size and can run at that SFM.
 
 ## What changes inside Forge
 
@@ -55,8 +55,8 @@ Forge can show it either way:
 When Sine runs in a frame of a Forge page from the same origin, it posts these with `window.parent.postMessage(message, location.origin)`:
 
 ```js
-{ source: "mb-sine", type: "ready",  version: "1.2.0" }   // the calculator is ready
-{ source: "mb-sine", type: "result", version: "1.2.0",
+{ source: "mb-sine", type: "ready",  version: "1.2.1" }   // the calculator is ready
+{ source: "mb-sine", type: "result", version: "1.2.1",
   label: "Milling and Drilling Calculator",              // the card the result came from
   machine: "No machine profile selected",                // Sine's active machine profile name
   text: "Basis: entered SFM\nRPM: 573\n...",             // the result, plain text

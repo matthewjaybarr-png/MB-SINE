@@ -153,6 +153,7 @@
 <div class="result" id="presetPreview">Preset preview</div>
 <button data-click="calcMain()">Calculate</button>
 <div class="result" id="mainResult"></div>
+<div class="shop-tool-list" id="mainShopTools" hidden></div>
 <div class="note">
 Choose SFM or RPM as the speed input. Feed inputs and displayed feed rates are imperial: IPR is inches/revolution, FPT is inches/tooth, and feed rate is IPM. Tool diameter and stepover use the selected inch or mm unit. Endmill mode uses radial stepover for chip thinning; face and shoulder modes ignore stepover.
 </div>
@@ -297,7 +298,8 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div><label for="threadType">Thread standard</label><select id="threadType" data-change="loadThreadChart()"><option value="UNC">UNC</option><option value="UNF">UNF</option><option value="NPT">NPT</option><option value="METRIC">Metric</option></select></div>
 <div><label for="threadSelect">Thread or tap size</label><select id="threadSelect" data-change="syncThreadToolsFromTap()"></select></div>
 <div><label for="tapStyle">Tap style</label><select id="tapStyle" data-change="calcTapSearch(); applyTapPreset()"><option value="cut">Cutting Tap</option><option value="form">Form Tap</option></select></div>
-</div><p class="note">This selection drives the thread tools below. Diameter and pitch fields can still be edited for a custom thread.</p></div>
+</div><p class="note">This selection drives the thread tools below. Diameter and pitch fields can still be edited for a custom thread.</p>
+<div class="shop-tool-list" id="tapShopTools" hidden></div></div>
 <div class="grid2 compact-grid"><div class="card"><h2>Tap Drill Check</h2>
 <label for="candidateDrill">Check a drill size</label><input id="candidateDrill" placeholder="Optional: #7, 13/64, .201, 5.1 mm" type="text"/>
 <button data-click="calcTapSearch()">Check Tap Drill</button><div class="result" id="tapResult"></div>

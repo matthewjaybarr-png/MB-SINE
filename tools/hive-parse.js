@@ -80,14 +80,32 @@ function diameterOf(text, kind) {
   return after ? +after[1] : value;
 }
 
-/** "9/16-12", "#10-24", "M10 X 1.5", "3/4-14 NPT" -> {thread, npt} or null. */
+const SIZE = String.raw`#\d+|\d+\s*-\s*\d+\/\d+(?=\s*["']?\s*(?:-\s*\d|N\.?P))|\d+\s+\d+\/\d+|\d+\/\d+|\d*\.\d+|\d+`;
+const INCH_THREAD = new RegExp(`(${SIZE})\\s*["']?\\s*-\\s*(\\d+(?:\\.\\d+)?)\\b(?!\\s*\\/)`);
+const NPT_SIZE = /^(\d+\s*-\s*\d+\/\d+|\d+\s+\d+\/\d+|\d+\/\d+|\d*\.\d+|\d+)\s*["']?\s*(?:\(.*?\)\s*)?(?:EXT\.?\s*)?N\.?P\.?T/;
+
+/**
+ * "9/16-12", '3/8"-16', "#10-24", "10-24", "1-1/8 - 12", "M10 X 1.5", "3/4-14 NPT", '1/2" NPT' ->
+ * {thread, std: "inch"|"npt"|"metric", major, pitch?} or null. major is inch (nominal size for NPT) or mm;
+ * pitch is TPI or mm. NPT without a pitch in the text leaves pitch for the chart to supply.
+ */
 function threadOf(text) {
-  const metric = /\bM(\d+(?:\.\d+)?)\s*[X×]\s*(\d+(?:\.\d+)?)/.exec(text);
-  if (metric) return { thread: `M${metric[1]} × ${metric[2]}`, npt: false };
-  const inch = /(#\d+|\d+\s+\d+\/\d+|\d+\/\d+|\d+)\s*-\s*(\d+(?:\.\d+)?)\b/.exec(text);
-  if (!inch) return null;
+  const metric = /\bM(\d+(?:\.\d+)?)\s*[X×]\s*(\d+(?:\.\d+)?)/.exec(text) ||
+    (/\bMM\b|METRIC/.test(text) && /^(\d+(?:\.\d+)?)\s*[X×]\s*(\d+(?:\.\d+)?)/.exec(text)); // "12 X 1.75 MM", "24 X 3 METRIC"
+  if (metric) return { thread: `M${metric[1]} × ${metric[2]}`, std: "metric", major: +metric[1], pitch: +metric[2] };
   const npt = /N\.?P\.?T/.test(text);
-  return { thread: `${inch[1].replace(/\s+/, " ")}-${inch[2]}${npt ? " NPT" : ""}`, npt };
+  const inch = INCH_THREAD.exec(text) || (npt && NPT_SIZE.exec(text));
+  if (!inch) return null;
+  const size = inch[1].replace(/(\d)\s*-\s*(\d+\/)/, "$1 $2").replace(/\s+/g, " ");
+  const pitch = inch[2] === undefined ? undefined : +inch[2];
+  // "10-24" is a #10 screw; "1-14" is one inch (numbered screws run #0-#12 at 24 TPI and finer)
+  const numbered = size.startsWith("#") || (!npt && /^\d+$/.test(size) && +size >= 2 && +size <= 12 && pitch >= 24);
+  const n = numbered ? +size.replace("#", "") : 0;
+  const major = numbered ? 0.06 + 0.013 * n : num(size);
+  if (!Number.isFinite(major) || major <= 0) return null;
+  const label = numbered ? "#" + n : /^\d*\.\d+$/.test(size) ? String(major) : size;
+  const std = npt ? "npt" : "inch";
+  return { thread: `${label}${pitch ? "-" + pitch : ""}${npt ? " NPT" : ""}`, std, major: Math.round(major * 10000) / 10000, pitch };
 }
 
 const clean = s => String(s || "").replace(/\s+/g, " ").trim();
@@ -117,10 +135,18 @@ function parseHiveTool(tool, book, drillSizes = {}) {
   if (dia) out.dia = Math.round(dia * 10000) / 10000;
   if (kind === "tap" || kind === "threadmill") {
     const t = threadOf(up);
-    if (t) out.thread = t.thread;
+    if (t) {
+      out.thread = t.thread;
+      if (kind === "tap") Object.assign(out, { std: t.std, major: t.major }, t.pitch ? { pitch: t.pitch } : {});
+    }
   }
+  if (kind === "tap" && /FORM|ROLL/.test(up)) out.form = true;
+  // the 391-392 book's "SFM/FPT: 44.18 / .0625" line: the speed and feed the shop runs that tool at
+  const run = lines.map(l => /SFM\s*\/\s*FPT\s*:\s*(\d*\.?\d+)\s*\/\s*(\d*\.?\d+)/i.exec(l)).find(Boolean);
+  if (run) { out.sfm = +run[1]; out.fpt = +run[2]; }
   // inserts = cutting edges on mills; on drills and bores the count is not the feed multiplier
-  if (["mill", "chamfer", "threadmill"].includes(kind) && Number.isInteger(tool.inserts) && tool.inserts > 0) out.teeth = tool.inserts;
+  // a mill listed with 1 insert is a solid or screw-on head (Chip Surfer), whose flutes the toolbook doesn't count
+  if (["mill", "chamfer", "threadmill"].includes(kind) && Number.isInteger(tool.inserts) && tool.inserts > (kind === "mill" ? 1 : 0)) out.teeth = tool.inserts;
   if (angle && kind === "chamfer") out.angle = +angle[1]; // per side: 45° = 90° included
   if (sf) { out.rpm = +sf[1]; out.ipm = +sf[2]; }
   if (tool.coolant) out.coolant = clean(tool.coolant);
