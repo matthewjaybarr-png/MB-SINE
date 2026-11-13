@@ -147,7 +147,7 @@
       {thread:"1/4-20",major:0.250,pitch:20,tap:"#7",tapDec:0.2010},
       {thread:"5/16-18",major:0.3125,pitch:18,tap:"F",tapDec:0.2570},
       {thread:"3/8-16",major:0.375,pitch:16,tap:"5/16",tapDec:0.3125},
-      {thread:"7/16-14",major:0.4375,pitch:14,tap:"23/64",tapDec:0.359375},
+      {thread:"7/16-14",major:0.4375,pitch:14,tap:"U",tapDec:0.368},
       {thread:"1/2-13",major:0.500,pitch:13,tap:"27/64",tapDec:0.421875},
       {thread:"9/16-12",major:0.5625,pitch:12,tap:"31/64",tapDec:0.484375},
       {thread:"5/8-11",major:0.625,pitch:11,tap:"17/32",tapDec:0.53125},

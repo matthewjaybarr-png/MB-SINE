@@ -100,14 +100,13 @@
     }
     // The chip load sets the feed at the cutting edge, on the thread major diameter. The machine
     // is programmed at the tool centerline, which travels a smaller circle inside a thread
-    // (larger outside), so the programmed feed is scaled by centerline / major diameter.
-    // Programming the cutting-edge feed instead overfeeds an internal thread mill by major / (major - tool).
-    const referenceDiameter = threadLocation === "internal"
-      ? major
-      : requirePositive(threadMinorInches, "External thread minor diameter");
-    const centerlineDiameter = threadLocation === "internal" ? major - tool : referenceDiameter + tool;
+    // (larger outside), so the programmed feed is scaled: internal (D - d)/D, external (D + d)/D,
+    // D = thread major (Kennametal TMS). The external minor only sets the full-depth path.
+    const centerlineDiameter = threadLocation === "internal"
+      ? major - tool
+      : requirePositive(threadMinorInches, "External thread minor diameter") + tool;
     const peripheryFeedIpm = feedFromChipLoad(rpm, cuttingEdges, chipLoad);
-    const compensationRatio = centerlineDiameter / referenceDiameter;
+    const compensationRatio = (threadLocation === "internal" ? major - tool : major + tool) / major;
     return {
       centerlineDiameter,
       compensationRatio,

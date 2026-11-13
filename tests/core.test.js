@@ -31,15 +31,15 @@ test('thread-mill feed includes cutting-edge count and is programmed at the tool
   closeTo(result.feedIpm, 2.025);                   // what goes in the program (G41 off, centerline)
 });
 
-test('external thread-mill feed uses the component minor diameter for compensation', () => {
+test('external thread-mill feed is compensated on the major diameter; the minor sets the path', () => {
   const result = calc.threadMill({
     threadMajorInches: 1, threadMinorInches: 0.75, toolDiameterInches: 0.5, rpm: 2000, cuttingEdges: 4, chipLoad: 0.001,
     pitchInches: 1 / 8, threadLocation: 'external',
   });
   closeTo(result.peripheryFeedIpm, 8);
   closeTo(result.centerlineDiameter, 1.25);
-  closeTo(result.compensationRatio, 1.25 / 0.75);
-  closeTo(result.feedIpm, 13.333333333333334);      // 8 x (0.75 + 0.5) / 0.75
+  closeTo(result.compensationRatio, 1.5);            // (1 + 0.5) / 1, Kennametal TMS
+  closeTo(result.feedIpm, 12);                      // 8 x 1.5
 });
 
 test('external thread-mill feed requires a component minor diameter', () => {

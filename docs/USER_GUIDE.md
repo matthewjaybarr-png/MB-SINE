@@ -44,7 +44,7 @@ Peck output is general guidance. Drill geometry, chip form, coolant delivery, an
 - Cutting taps and form taps are handled separately. Form-tap drills are larger (0.68 × pitch instead of 1.299 × pitch), and the standard chart drill is shown for cutting taps.
 - Unsupported NPT form-tap estimates are not invented; the calculator directs the user to manufacturer data.
 - **Tap Speeds and Feeds** calculates RPM and synchronized feed from thread pitch.
-- **Thread Mill Helper** includes flute count and internal/external centerline compensation, and gives the programmed feed at the tool centerline as well as the feed at the cutting edge. External threads require the actual minor diameter because it depends on thread class and tolerance.
+- **Thread Mill Helper** includes flute count and internal/external centerline compensation, and gives the programmed feed at the tool centerline as well as the feed at the cutting edge. External feed is compensated on the major diameter, (D + d)/D; the actual minor diameter is still required for the full-depth tool path because it depends on thread class and tolerance.
 - **NPT Helper** gives pitch-and-turn travel guidance, not finished-thread gage depth.
 
 Always verify threaded work with the correct tap or thread-mill data and inspection method.
