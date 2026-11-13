@@ -13,11 +13,12 @@ const PREFERENCE_STORAGE_KEY = "mbSine.preferences.v1";
 const PREFERENCE_IDS = [
 "calcType", "units", "drillToolType", "material", "presetLevel",
 "turnType", "turnUnits", "turnMaterial", "turnPresetLevel",
-"tapCalcStyle", "tapToolMaterial", "tapWorkMaterial", "tapPresetLevel"
+"tapStyle", "tapToolMaterial", "tapWorkMaterial", "tapPresetLevel"
 ];
 const NON_EXPORTABLE_RESULTS = new Set(["presetPreview", "turnPresetPreview"]);
 let machineProfiles = [];
 let latestShopResult = null;
+let threadMillUnits = "inch";
 
 function gid(id){ return document.getElementById(id); }
 function num(id){ return parseFloat(gid(id).value) || 0; }
@@ -163,6 +164,7 @@ PREFERENCE_IDS.forEach(id => {
   if([...element.options].some(option => option.value === value)) element.value = value;
  }
 });
+if(!Object.prototype.hasOwnProperty.call(preferences, "tapStyle") && Object.prototype.hasOwnProperty.call(preferences, "tapCalcStyle")) gid("tapStyle").value = preferences.tapCalcStyle;
 }
 function saveShopPreferences(){
 const preferences = {};
@@ -196,6 +198,7 @@ latestShopResult = {
  created:new Date()
 };
 gid("latestResultStatus").textContent = latestShopResult.label + " · " + latestShopResult.machine;
+gid("latestResultDetail").textContent = latestShopResult.text;
 document.dispatchEvent(new CustomEvent("mb-sine:result", {detail:{...latestShopResult, note:latestResultNote()}}));
 gid("copyLatestButton").disabled = false;
 gid("downloadLatestButton").disabled = false;
@@ -318,21 +321,6 @@ nume /= g;
 const den = denom / g;
 return neg + (w ? w + " " : "") + nume + "/" + den;
 }
-function parseFraction(text){
-text = String(text).trim();
-if(text.includes(" ")){
-const parts = text.split(" ");
-return (parseFloat(parts[0]) || 0) + parseFraction(parts[1] || "0");
-}
-if(text.includes("/")){
-const parts = text.split("/");
-const a = parseFloat(parts[0]) || 0;
-const b = parseFloat(parts[1]) || 1;
-return b ? a / b : 0;
-}
-return parseFloat(text) || 0;
-}
-
 function toolDiaInches(){ const d = num("toolDia"); return gid("units").value === "metric" ? d/25.4 : d; }
 function stepoverInches(){ const s = num("stepover"); return gid("units").value === "metric" ? s/25.4 : s; }
 function peckDiaInches(){ const d = num("peckDia"); return gid("peckUnits").value === "metric" ? d/25.4 : d; }
@@ -515,11 +503,9 @@ if(type === "drill"){
   gid("mainResult").innerHTML = out + "Enter IPR to calculate feed.";
   return;
  }
- const fpt = flutes ? ipr / flutes : 0;
  const ipm = rpm * ipr;
  feedIpm = ipm;
- out += "FPT from IPR: " + round(fpt,5) + "<br>";
- out += "IPM from RPM × IPR: " + round(ipm,4);
+ out += "Programmed feed (RPM × IPR): " + round(ipm,4) + " IPM";
 }
 else if(type === "endmill"){
  const fpt = num("fpt");
@@ -546,10 +532,10 @@ else if(type === "endmill"){
  feedIpm = adjustedIpm;
  out += "Stepover ratio: " + round(ratio,4) + "<br>";
  out += "Chip thinning factor: " + round(chipThin,4) + "<br>";
- out += "Programmed FPT: " + round(fpt,5) + "<br>";
- out += "Adjusted FPT for chip thinning: " + round(adjustedFpt,5) + "<br>";
- out += "Programmed IPM: " + round(programmedIpm,4) + "<br>";
- out += "Adjusted IPM at same RPM: " + round(adjustedIpm,4);
+ out += "Target feed per tooth at 50% or greater stepover: " + round(fpt,5) + " in/tooth<br>";
+ out += "Programmed feed per tooth after chip thinning: " + round(adjustedFpt,5) + " in/tooth<br>";
+ out += "Base feed at target chip load: " + round(programmedIpm,4) + " IPM<br>";
+ out += "Programmed feed at selected stepover: " + round(adjustedIpm,4) + " IPM";
 }
 else if(type === "face45"){
  const fpt = num("fpt");
@@ -566,11 +552,9 @@ else if(type === "face45"){
  const ipm = rpm * flutes * fpt;
  feedIpm = ipm;
  const actualChip = fpt * Math.sin(Math.PI/4);
- const multiplier = actualChip ? fpt / actualChip : 1;
- out += "Programmed FPT: " + round(fpt,5) + "<br>";
+ out += "Feed per tooth: " + round(fpt,5) + " in/tooth<br>";
  out += "Programmed IPM: " + round(ipm,4) + "<br>";
- out += "Actual chip thickness at 45 degrees: " + round(actualChip,5) + "<br>";
- out += "Feed advantage multiplier versus 90 degree: " + round(multiplier,4);
+ out += "Approximate chip thickness at 45° lead: " + round(actualChip,5) + " in/tooth";
 }
 else{
  const fpt = num("fpt");
@@ -583,9 +567,8 @@ else{
  }
  const ipm = rpm * flutes * fpt;
  feedIpm = ipm;
- out += "Programmed FPT: " + round(fpt,5) + "<br>";
+ out += "Feed per tooth: " + round(fpt,5) + " in/tooth<br>";
  out += "Programmed IPM: " + round(ipm,4) + "<br>";
- out += "Actual chip thickness at 90 degrees: " + round(fpt,5) + "<br>";
  out += "90 degree shoulder cutters are best when wall straightness matters.";
 }
 
@@ -726,17 +709,6 @@ sel.selectedIndex = 0;
 showQuickDrill();
 }
 
-function populateNptSizes(){
-const select = gid("nptSize");
-select.innerHTML = "";
-NPT.forEach(thread => {
- const option = document.createElement("option");
- option.value = thread.size;
- option.textContent = thread.size;
- select.appendChild(option);
-});
-}
-
 function normalizeDrillSearchText(text){
 return String(text || "").trim().toLowerCase();
 }
@@ -755,21 +727,19 @@ if(named) return {name:named.name, dec:named.dec, source:"chart"};
 let q = raw.toLowerCase().replace(/ø/g,"").trim();
 q = q.replace(/\s+/g," ");
 
-if(/mm$/.test(q) || q.includes(" mm")){
-const mm = parseFloat(q.replace("mm","").trim());
-if(isFinite(mm) && mm > 0) return {name:raw, dec:mm/25.4, source:"metric"};
-}
-if(/in$/.test(q) || q.includes(" inch") || q.includes(" inches")){
-const inches = parseFloat(q.replace("inches","").replace("inch","").replace("in","").trim());
-if(isFinite(inches) && inches > 0) return {name:raw, dec:inches, source:"inch"};
-}
-if(q.includes("/")){
-const frac = parseFraction(q);
-if(isFinite(frac) && frac > 0) return {name:raw, dec:frac, source:"fraction"};
-}
-const val = parseFloat(q);
-if(isFinite(val) && val > 0){
-return {name:raw, dec:val, source:"decimal"};
+try{
+ if(/\s*mm$/i.test(q)){
+  const mm = MBCalc.parseFraction(q.replace(/\s*mm$/i, "").trim());
+  return mm > 0 ? {name:raw, dec:mm/25.4, source:"metric"} : null;
+ }
+ if(/\s*(?:in|inch|inches)$/i.test(q)){
+  const inches = MBCalc.parseFraction(q.replace(/\s*(?:in|inch|inches)$/i, "").trim());
+  return inches > 0 ? {name:raw, dec:inches, source:"inch"} : null;
+ }
+ const value = MBCalc.parseFraction(q);
+ if(value > 0) return {name:raw, dec:value, source:q.includes("/") ? "fraction" : "decimal"};
+}catch(error){
+ return null;
 }
 return null;
 }
@@ -786,13 +756,15 @@ if(!parsed){
 result.innerHTML = "Could not read that size. Try formats like 3/16, #7, A, 10.2 mm, or .257.";
 return;
 }
-const nearest = nearestDrill(parsed.dec);
+const nearest = MBCalc.nearestDrillInRange(parsed.dec, allDrills);
 
 result.innerHTML =
 "Entered size: " + escapeHtml(parsed.name) + "<br>" +
 "Decimal inch: " + round(parsed.dec,4) + "<br>" +
 "Millimeters: " + round(parsed.dec*25.4,3) + "<br>" +
-"Nearest listed drill: " + nearest.name + " (" + round(nearest.dec,4) + " inch, " + round(nearest.dec*25.4,3) + " mm)";
+(nearest
+ ? "Nearest listed drill: " + nearest.name + " (" + round(nearest.dec,4) + " inch, " + round(nearest.dec*25.4,3) + " mm)"
+ : "No nearest chart drill shown; this size is outside the built-in drill chart range.");
 }
 
 function showQuickDrill(){
@@ -808,32 +780,15 @@ gid("drillQuickResult").innerHTML =
 function calcPeck(){
 const dia = peckDiaInches();
 const depth = holeDepthInches();
-const material = gid("peckMaterial").value;
-if(dia <= 0){
-gid("peckResult").innerHTML = "Enter a valid drill diameter";
-return;
+let ratio;
+try{
+ ratio = MBCalc.depthDiameterRatio(depth, dia);
+}catch(error){
+ showCalculationError("peckResult", error);
+ return;
 }
-const ratio = depth / dia;
-let peck = 0;
-let note = "";
-if(ratio <= 3){
-peck = 0;
-note = material === "cast" ? "Usually no peck needed under 3xD in cast iron" : "Usually no peck or very light chip break under 3xD";
-}else if(ratio <= 5){
-peck = dia * 0.5;
-note = "Moderate peck range";
-}else if(ratio <= 8){
-peck = dia * 0.3;
-note = "Deeper hole. Use smaller pecks";
-}else{
-peck = dia * 0.2;
-note = "Deep hole. Prefer brand data and better chip evacuation";
-}
-const showPeck = gid("peckUnits").value === "metric" ? peck * 25.4 : peck;
-gid("peckResult").innerHTML =
-"Depth to diameter ratio: " + round(ratio,2) + "<br>" +
-"Suggested peck depth: " + round(showPeck,4) + "<br>" +
-note;
+gid("peckResult").textContent =
+"Depth-to-diameter ratio: " + round(ratio,2) + "×D. Peck size depends on drill geometry, material, coolant, chip form, and machine cycle; use the tool maker's and controller's guidance.";
 }
 
 function currentThreadArrayFromType(type){
@@ -856,78 +811,50 @@ sel.appendChild(o);
 });
 sel.selectedIndex = 0;
 syncThreadToolsFromTap();
-calcTapSearch();
 }
 
-function loadTapCalcThreadChart(){
-const type = gid("tapCalcThreadType").value;
-const arr = currentThreadArrayFromType(type);
-const sel = gid("tapCalcSelect");
-if(!sel) return;
-sel.innerHTML = "";
-arr.forEach((t,i)=>{
-const o = document.createElement("option");
-o.value = String(i);
-o.textContent = t.thread;
-sel.appendChild(o);
-});
-sel.selectedIndex = 0;
-applyTapCalcSelect();
-}
-
-function applyTapCalcSelect(){
-const type = gid("tapCalcThreadType").value;
-const arr = currentThreadArrayFromType(type);
-const t = arr[parseInt(gid("tapCalcSelect").value || 0,10)] || arr[0];
-if(!t) return;
-gid("tapCalcMajor").value = t.major;
-gid("tapCalcPitch").value = t.pitch;
-calcTapSpeedFeed();
-}
-
-function loadThreadMillChart(){
-const type = gid("tmThreadType").value;
-const arr = currentThreadArrayFromType(type);
-const sel = gid("tmSelect");
-if(!sel) return;
-sel.innerHTML = "";
-arr.forEach((t,i)=>{
-const o = document.createElement("option");
-o.value = String(i);
-o.textContent = t.thread;
-sel.appendChild(o);
-});
-sel.selectedIndex = 0;
-applyThreadMillSelect();
-}
-
-function applyThreadMillSelect(){
-const type = gid("tmThreadType").value;
-const arr = currentThreadArrayFromType(type);
-const t = arr[parseInt(gid("tmSelect").value || 0,10)] || arr[0];
-if(!t) return;
-gid("tmMajor").value = t.major;
-gid("tmPitch").value = t.pitch;
-calcThreadMill();
+function selectedThread(){
+const type = gid("threadType").value;
+const threads = currentThreadArrayFromType(type);
+return {type, thread:threads[parseInt(gid("threadSelect").value || 0,10)] || threads[0]};
 }
 
 function syncThreadToolsFromTap(){
-const type = gid("threadType").value;
-const idx = gid("threadSelect").value || "0";
-if(gid("tapCalcThreadType")) gid("tapCalcThreadType").value = type;
-if(gid("tmThreadType")) gid("tmThreadType").value = type;
-loadTapCalcThreadChart();
-loadThreadMillChart();
-if(gid("tapCalcSelect") && gid("tapCalcSelect").options.length){
- const maxIdx = gid("tapCalcSelect").options.length - 1;
- gid("tapCalcSelect").value = String(Math.min(parseInt(idx || 0,10), maxIdx));
- applyTapCalcSelect();
+const {type, thread} = selectedThread();
+if(!thread) return;
+const metric = type === "METRIC";
+gid("tapCalcMajor").value = thread.major;
+gid("tapCalcPitch").value = thread.pitch;
+gid("tapCalcMajorLabel").textContent = metric ? "Major diameter (mm)" : "Major diameter (in)";
+gid("tapCalcPitchLabel").textContent = metric ? "Pitch (mm/rev)" : "Pitch (TPI)";
+gid("tmMajor").value = thread.major;
+gid("tmPitch").value = thread.pitch;
+gid("tmMajorLabel").textContent = metric ? "Major diameter (mm)" : "Major diameter (in)";
+gid("tmPitchLabel").textContent = metric ? "Pitch (mm/rev)" : "Pitch (TPI)";
+gid("tmMinor").value = "";
+gid("tmMinorLabel").textContent = metric ? "Minor diameter (mm)" : "Minor diameter (in)";
+gid("tmMinorWrap").hidden = gid("tmLocation").value !== "external";
+gid("nptHelperCard").hidden = type !== "NPT";
+calcTapSearch();
+calcTapSpeedFeed();
+calcThreadMill();
+calcNptHelper();
 }
-if(gid("tmSelect") && gid("tmSelect").options.length){
- const maxIdx = gid("tmSelect").options.length - 1;
- gid("tmSelect").value = String(Math.min(parseInt(idx || 0,10), maxIdx));
- applyThreadMillSelect();
+
+function toggleThreadLocation(){
+gid("tmMinorWrap").hidden = gid("tmLocation").value !== "external";
 }
+
+function changeThreadMillUnits(){
+const units = gid("tmUnits").value;
+if(units !== threadMillUnits){
+ const factor = units === "metric" ? 25.4 : 1 / 25.4;
+ ["tmToolDia", "tmDepth"].forEach(id => {
+  if(num(id) > 0) gid(id).value = round(num(id) * factor,6);
+ });
+ threadMillUnits = units;
+}
+calcThreadMill();
 }
 
 function nearestDrill(dec){
@@ -1010,19 +937,21 @@ gid("tapResult").innerHTML = out;
 }
 
 function calcNptHelper(){
-const size = gid("nptSize").value;
+const {type, thread} = selectedThread();
 const turns = num("nptTurns");
-const tpi = nptPitchMap[size];
-const depth = tpi ? turns / tpi : 0;
+const tpi = type === "NPT" && thread ? nptPitchMap[thread.size] : 0;
+if(!tpi || turns <= 0){ gid("nptHelperResult").textContent = "Select an NPT size and enter a positive number of turns."; return; }
+const depth = turns / tpi;
 gid("nptHelperResult").innerHTML =
-"Approximate thread advance after " + turns + " turns: " + round(depth,4) + " inch<br>" +
+"Selected thread: " + escapeHtml(thread.thread) + "<br>" +
+"Approximate axial advance after " + turns + " turns: " + round(depth,4) + " inch<br>" +
 "NPT taper on diameter: 0.0625 inch per inch of thread length<br>" +
 "NPT taper per side: 1.7899°<br>" +
 "NPT is tapered, so use this only as a rough programming helper and verify with the proper gage.";
 }
 
 function tapCalcMajorInches(){
-const type = gid("tapCalcThreadType").value;
+const {type} = selectedThread();
 const major = num("tapCalcMajor");
 return type === "METRIC" ? major / 25.4 : major;
 }
@@ -1050,8 +979,8 @@ const material = materials[parseInt(gid("tapWorkMaterial").value || 0,10)] || ma
 const toolMaterial = gid("tapToolMaterial").value;
 const profileKey = toolMaterial === "carbide" ? "tapCarbide" : "tapHss";
 const profile = MBData.materialProfile(material, profileKey, gid("tapPresetLevel").value);
-const styleFactor = gid("tapCalcStyle").value === "form" ? 0.8 : 1;
-const threadFactor = gid("tapCalcThreadType").value === "NPT" ? 0.85 : 1;
+const styleFactor = gid("tapStyle").value === "form" ? 0.8 : 1;
+const threadFactor = selectedThread().type === "NPT" ? 0.85 : 1;
 gid("tapSpeedBasis").value = "sfm";
 updateSpeedBasisUI("tap");
 gid("tapCalcSfm").value = round(profile.sfm * styleFactor * threadFactor,1);
@@ -1060,8 +989,8 @@ calcTapSpeedFeed();
 }
 
 function calcTapSpeedFeed(){
-const type = gid("tapCalcThreadType").value;
-const style = gid("tapCalcStyle").value;
+const {type} = selectedThread();
+const style = gid("tapStyle").value;
 const toolMaterial = gid("tapToolMaterial").value;
 const material = materials[parseInt(gid("tapWorkMaterial").value || 0,10)] || materials[0];
 const majorIn = tapCalcMajorInches();
@@ -1089,18 +1018,17 @@ const {rpm, sfm} = speed;
 gid("tapCalcRpm").value = round(rpm,0);
 gid("tapCalcSfm").value = round(sfm,1);
 const ipm = rpm * pitchIn;
-const mmPerRev = type === "METRIC" ? pitchVal : pitchIn * 25.4;
+const mmPerRev = pitchIn * 25.4;
 const mmMin = rpm * mmPerRev;
 gid("tapSpeedResult").innerHTML =
 "Material: " + material.name + " · ISO " + material.isoGroup + "<br>" +
 "MB tap baseline low / standard / upper: " + formatRange(profile.range) + " SFM<br>" +
-"Adjusted selected baseline (verify with tap data): " + round(recommended,1) + " SFM<br>" +
+"Suggested SFM using this material, tap, and thread: " + round(recommended,1) + " (select Apply Shop Baseline to use it)<br>" +
 "Basis: " + (speed.basis === "sfm" ? "entered SFM" : "entered RPM") + "<br>" +
 "Calculated RPM: " + round(rpm,0) + "<br>" +
 "Calculated SFM: " + round(sfm,1) + "<br>" +
-"Feed per revolution: " + round(pitchIn,5) + " inch/rev<br>" +
-"Feed rate: " + round(ipm,4) + " IPM<br>" +
-"Metric feed rate: " + round(mmMin,2) + " mm/min" +
+"Feed per revolution: " + round(pitchIn,5) + " in/rev (" + round(mmPerRev,4) + " mm/rev)<br>" +
+"Calculated feed: " + round(ipm,4) + " IPM (" + round(mmMin,2) + " mm/min)" +
 machineLimitMarkup(rpm, ipm);
 }
 
@@ -1113,7 +1041,7 @@ updateSpeedBasisUI("tap");
 }
 
 function calcThreadMill(){
-const type = gid("tmThreadType").value;
+const {type} = selectedThread();
 const major = num("tmMajor");
 const toolDiaInput = num("tmToolDia");
 const pitchVal = num("tmPitch");
@@ -1126,10 +1054,13 @@ const pitchIn = pitchInchesForType(type, pitchVal);
 const majorIn = type === "METRIC" ? major / 25.4 : major;
 const toolDia = gid("tmUnits").value === "metric" ? toolDiaInput / 25.4 : toolDiaInput;
 const depth = gid("tmUnits").value === "metric" ? depthInput / 25.4 : depthInput;
+const minorDiaInput = num("tmMinor");
+const minorIn = type === "METRIC" ? minorDiaInput / 25.4 : minorDiaInput;
 let result;
 try{
  result = MBCalc.threadMill({
   threadMajorInches: majorIn,
+  threadMinorInches: minorIn,
   toolDiameterInches: toolDia,
   rpm,
   cuttingEdges: flutes,
@@ -1147,6 +1078,7 @@ let out = "";
 out += "Thread location: " + (location === "internal" ? "Internal" : "External") + "<br>";
 out += "Pitch per revolution in inches: " + round(pitchIn,5) + "<br>";
 out += "Toolpath centerline diameter: " + round(pathDia,5) + "<br>";
+if(location === "external") out += "External thread minor diameter: " + round(minorDiaInput,5) + (type === "METRIC" ? " mm (used as " + round(minorIn,5) + " inch)" : " inch") + "<br>";
 out += "Cutting teeth or flutes: " + round(flutes,0) + "<br>";
 out += "Feed at the cutting edge (RPM × teeth × FPT): " + round(result.peripheryFeedIpm,4) + " IPM<br>";
 out += "Programmed centerline feed (× " + round(result.compensationRatio,4) + "): " + round(feed,4) + " IPM<br>";
@@ -1415,9 +1347,16 @@ gid("convLengthResult").innerHTML =
 function calcFractionConversion(){
 const dec = num("convDecInput");
 const fracText = gid("convFracInput").value;
+let fraction;
+try{
+ fraction = MBCalc.parseFraction(fracText);
+}catch(error){
+ gid("convFractionResult").textContent = error.message;
+ return;
+}
 gid("convFractionResult").innerHTML =
 "Decimal to nearest 64ths: " + decimalToFraction64(dec) + "<br>" +
-"Fraction to decimal: " + round(parseFraction(fracText),6);
+"Fraction to decimal: " + round(fraction,6);
 }
 
 function calcPitchSpeedConversion(){
@@ -1433,27 +1372,31 @@ gid("convPitchSpeedResult").innerHTML =
 }
 
 function calcBoltCircle(){
-const bcd = num("bcd");
-const count = Math.max(1, Math.floor(num("holeCount")));
-const start = num("startAngle");
-const cx = num("centerX");
-const cy = num("centerY");
-const r = bcd / 2;
+let result;
+try{
+ result = MBCalc.boltCircle({
+  diameter:num("bcd"),
+  holeCount:num("holeCount"),
+  startAngleDegrees:num("startAngle"),
+  centerX:num("centerX"),
+  centerY:num("centerY"),
+ });
+}catch(error){
+ showCalculationError("boltSummaryResult", error);
+ gid("boltBody").innerHTML = "";
+ return;
+}
 const body = gid("boltBody");
 body.innerHTML = "";
-for(let i=0;i<count;i++){
-const angle = start + i * 360 / count;
-const rad = angle * Math.PI / 180;
-const x = cx + r * Math.cos(rad);
-const y = cy + r * Math.sin(rad);
+result.holes.forEach(hole => {
 const tr = document.createElement("tr");
-tr.innerHTML = "<td>"+(i+1)+"</td><td>"+round(angle,4)+"</td><td>"+round(x,4)+"</td><td>"+round(y,4)+"</td>";
+tr.innerHTML = "<td>"+hole.number+"</td><td>"+round(hole.angleDegrees,4)+"</td><td>"+round(hole.x,4)+"</td><td>"+round(hole.y,4)+"</td>";
 body.appendChild(tr);
-}
+});
 gid("boltSummaryResult").innerHTML =
-"Radius: " + round(r,4) + "<br>" +
-"Angle step: " + round(360 / count,4) + "°<br>" +
-"Center: X " + round(cx,4) + "  Y " + round(cy,4);
+"Radius: " + round(result.radius,4) + "<br>" +
+"Angle step: " + round(result.angleStepDegrees,4) + "°<br>" +
+"Center: X " + round(result.centerX,4) + "  Y " + round(result.centerY,4);
 }
 
 function calcCircle(){
@@ -1484,17 +1427,19 @@ function calcTaper(){
 const large = num("largeDia");
 const small = num("smallDia");
 const len = num("taperLen");
-const diamChange = large - small;
-const perSide = len ? Math.atan((diamChange / 2) / len) * 180 / Math.PI : 0;
-const included = perSide * 2;
-const taperPerInch = len ? diamChange / len : 0;
-const taperPerFoot = taperPerInch * 12;
+let result;
+try{
+ result = MBCalc.taperGeometry(large, small, len);
+}catch(error){
+ showCalculationError("taperResult", error);
+ return;
+}
 gid("taperResult").innerHTML =
-"Diameter change: " + round(diamChange,5) + "<br>" +
-"Per side angle: " + round(perSide,4) + "°<br>" +
-"Included angle: " + round(included,4) + "°<br>" +
-"Taper per inch: " + round(taperPerInch,5) + "<br>" +
-"Taper per foot: " + round(taperPerFoot,5);
+"Diameter change: " + round(result.diameterChange,5) + " in<br>" +
+"Per side angle: " + round(result.perSideAngleDegrees,4) + "°<br>" +
+"Included angle: " + round(result.includedAngleDegrees,4) + "°<br>" +
+"Taper per inch: " + round(result.taperPerInch,5) + " in/in<br>" +
+"Taper per foot: " + round(result.taperPerFoot,5) + " in/ft";
 }
 
 function calcPointDistance(){
@@ -1549,12 +1494,91 @@ MBWorkflow.migrateLegacyKeys(window.localStorage, {
 "grCalculator.activeMachine.v1": ACTIVE_MACHINE_STORAGE_KEY,
 "grCalculator.preferences.v1": PREFERENCE_STORAGE_KEY
 });
+// Shop Tools: the shop's own toolbook list. Only the installer and Forge builds carry it (shop/tools.js);
+// on the public site MBShopTools is missing and the card stays hidden.
+function shopToolList(){ return (globalThis.MBShopTools && Array.isArray(globalThis.MBShopTools.tools)) ? globalThis.MBShopTools.tools : []; }
+let shopToolPicked = null;
+function initializeShopTools(){
+const data = globalThis.MBShopTools;
+if(!shopToolList().length) return;
+gid("shopToolsCard").hidden = false;
+gid("shopToolsNote").textContent = shopToolList().length + " tools from the Hive toolbooks (built " + data.built + "). Sizes are read from the toolbook text, so check them against the description before using a result.";
+(data.books || []).forEach(b => gid("shopToolBook").add(new Option(b.name + " (" + b.count + ")", b.name)));
+searchShopTools();
+}
+function searchShopTools(){
+const words = gid("shopToolSearch").value.toUpperCase().split(/\s+/).filter(Boolean);
+const book = gid("shopToolBook").value, kind = gid("shopToolKind").value;
+const hits = [];
+shopToolList().forEach((t, i) => {
+if((book && t.book !== book) || (kind && t.kind !== kind)) return;
+const text = [t.desc, t.maker, "T" + t.id, ...t.lines].join(" ").toUpperCase();
+if(words.every(w => text.includes(w))) hits.push(i);
+});
+const shown = hits.slice(0, 60).map(i => {
+const t = shopToolList()[i];
+return '<button class="ghost shop-tool" type="button" data-click="pickShopTool(' + i + ')"><b>' + escapeHtml(t.book + " T" + t.id) + "</b> " + escapeHtml(t.desc) + "</button>";
+}).join("");
+gid("shopToolResults").innerHTML = shown + (hits.length > 60 ? '<div class="note">' + (hits.length - 60) + " more. Narrow the search.</div>" : hits.length ? "" : '<div class="note">No tools match.</div>');
+}
+function pickShopTool(index){
+const t = shopToolList()[index];
+if(!t) return;
+shopToolPicked = t;
+const facts = [
+["Toolbook", t.book + ", tool " + t.id + (t.machines.length ? " (machines " + t.machines.join(", ") + ")" : "")],
+["Maker", t.maker],
+["Diameter read", t.dia ? round(t.dia, 4) + " in" : ""],
+["Thread", t.thread],
+["Chamfer angle", t.angle ? t.angle + "° per side (" + t.angle * 2 + "° included)" : ""],
+["Teeth (inserts)", t.teeth],
+["Proven in the toolbook", t.rpm ? "S " + t.rpm + "  F " + t.ipm : ""],
+["Coolant", t.coolant],
+];
+const uses = [];
+if(t.dia && ["drill","mill","ream","spot","bore"].includes(t.kind)) uses.push(["main","Milling and Drilling"]);
+if(t.dia && t.kind === "drill") uses.push(["spot","Spot drill (as the follow drill)"]);
+if(t.dia && t.kind === "chamfer") uses.push(["chamfer","Chamfer"]);
+if(t.dia && t.kind === "threadmill") uses.push(["threadmill","Thread Mill"]);
+gid("shopToolDetail").hidden = false;
+gid("shopToolDetail").innerHTML = "<b>" + escapeHtml(t.desc) + "</b><br>" +
+facts.filter(f => f[1]).map(f => escapeHtml(f[0]) + ": " + escapeHtml(f[1])).join("<br>") +
+(t.lines.length ? "<br>" + t.lines.map(escapeHtml).join("<br>") : "") +
+(uses.length ? '<div class="workflow-actions">' + uses.map(u => '<button type="button" data-click="useShopTool(\'' + u[0] + '\')">Use in ' + escapeHtml(u[1]) + "</button>").join("") + "</div>" : "");
+}
+function useShopTool(target){
+const t = shopToolPicked;
+if(!t || !t.dia) return;
+const set = (id, value) => { gid(id).value = value; };
+if(target === "main"){
+set("calcType", t.kind === "mill" ? "endmill" : "drill");
+set("units", "inch");
+set("toolDia", t.dia);
+if(t.teeth) set("flutes", t.teeth);
+toggleCalcType(); calcMain();
+gid("toolDia").scrollIntoView({block:"center"});
+} else if(target === "spot"){
+set("followDrillDia", t.dia); calcSpotDrill();
+gid("followDrillDia").scrollIntoView({block:"center"});
+} else if(target === "chamfer"){
+set("chamferToolMaxDia", t.dia);
+if(t.angle && [...gid("chamferAngle").options].some(o => +o.value === t.angle * 2)) set("chamferAngle", t.angle * 2);
+calcChamfer();
+gid("chamferToolMaxDia").scrollIntoView({block:"center"});
+} else if(target === "threadmill"){
+set("tmToolDia", t.dia);
+if(t.teeth) set("tmFlutes", t.teeth);
+calcThreadMill();
+gid("tmToolDia").scrollIntoView({block:"center"});
+}
+}
+
 populateMaterials();
 populateTapWorkMaterials();
 populateDrillTable();
-populateNptSizes();
 loadThreadChart();
 initializeMachineProfiles();
+initializeShopTools();
 restoreShopPreferences();
 toggleCalcType();
 updateSpeedBasisUI("main");

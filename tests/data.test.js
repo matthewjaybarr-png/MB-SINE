@@ -45,3 +45,14 @@ test('provenance distinguishes shop baselines from external classification', () 
   assert.match(data.provenance.baseline.note, /manufacturer/i);
   assert.match(data.provenance.classification.url, /^https:\/\//);
 });
+
+test('every UNC, UNF and metric chart tap drill gives a 65-80% cutting-tap thread', () => {
+  for (const type of ['UNC', 'UNF', 'METRIC']) {
+    for (const t of data.threads[type]) {
+      const pitch = type === 'METRIC' ? t.pitch / 25.4 : 1 / t.pitch;
+      const major = type === 'METRIC' ? t.major / 25.4 : t.major;
+      const pct = (major - t.tapDec) / (1.299038 * pitch);
+      assert.ok(pct >= 0.645 && pct <= 0.805, `${t.thread} ${t.tap} = ${(pct * 100).toFixed(1)}%`);
+    }
+  }
+});

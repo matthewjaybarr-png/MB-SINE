@@ -22,6 +22,25 @@
     return number;
   }
 
+  function parseFraction(value) {
+    const text = String(value).trim();
+    let match = text.match(/^([+-]?)(\d+)\s+(\d+)\/(\d+)$/);
+    if (match) {
+      const denominator = Number(match[4]);
+      if (denominator === 0) throw new RangeError("Fraction denominator must be greater than zero.");
+      const sign = match[1] === "-" ? -1 : 1;
+      return sign * (Number(match[2]) + Number(match[3]) / denominator);
+    }
+    match = text.match(/^([+-]?\d+)\/(\d+)$/);
+    if (match) {
+      const denominator = Number(match[2]);
+      if (denominator === 0) throw new RangeError("Fraction denominator must be greater than zero.");
+      return Number(match[1]) / denominator;
+    }
+    if (/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(text)) return Number(text);
+    throw new RangeError("Enter a valid fraction or decimal.");
+  }
+
   function rpmFromSfm(sfm, diameterInches) {
     return requirePositive(sfm, "SFM") * SFM_RPM_CONSTANT /
       requirePositive(diameterInches, "Diameter");
@@ -62,6 +81,7 @@
 
   function threadMill({
     threadMajorInches,
+    threadMinorInches,
     toolDiameterInches,
     rpm,
     cuttingEdges,
@@ -80,11 +100,13 @@
     }
     // The chip load sets the feed at the cutting edge, on the thread major diameter. The machine
     // is programmed at the tool centerline, which travels a smaller circle inside a thread
-    // (larger outside), so the programmed feed is scaled by centerline / major diameter.
-    // Programming the cutting-edge feed instead overfeeds an internal thread mill by major / (major - tool).
-    const centerlineDiameter = threadLocation === "internal" ? major - tool : major + tool;
+    // (larger outside), so the programmed feed is scaled: internal (D - d)/D, external (D + d)/D,
+    // D = thread major (Kennametal TMS). The external minor only sets the full-depth path.
+    const centerlineDiameter = threadLocation === "internal"
+      ? major - tool
+      : requirePositive(threadMinorInches, "External thread minor diameter") + tool;
     const peripheryFeedIpm = feedFromChipLoad(rpm, cuttingEdges, chipLoad);
-    const compensationRatio = centerlineDiameter / major;
+    const compensationRatio = (threadLocation === "internal" ? major - tool : major + tool) / major;
     return {
       centerlineDiameter,
       compensationRatio,
@@ -159,6 +181,67 @@
       circumference: Math.PI * diameter,
       area: Math.PI * radius * radius,
     };
+  }
+
+  function depthDiameterRatio(depth, diameter) {
+    return requirePositive(depth, "Hole depth") / requirePositive(diameter, "Drill diameter");
+  }
+
+  function taperGeometry(largeDiameter, smallDiameter, length) {
+    const large = requirePositive(largeDiameter, "Large diameter");
+    const small = requirePositive(smallDiameter, "Small diameter");
+    const taperLength = requirePositive(length, "Taper length");
+    if (large <= small) throw new RangeError("Large diameter must exceed small diameter.");
+    const diameterChange = large - small;
+    const perSideAngleDegrees = Math.atan((diameterChange / 2) / taperLength) * 180 / Math.PI;
+    const taperPerInch = diameterChange / taperLength;
+    return {
+      diameterChange,
+      perSideAngleDegrees,
+      includedAngleDegrees: perSideAngleDegrees * 2,
+      taperPerInch,
+      taperPerFoot: taperPerInch * 12,
+    };
+  }
+
+  function boltCircle({ diameter, holeCount, startAngleDegrees = 0, centerX = 0, centerY = 0 }) {
+    const circleDiameter = requirePositive(diameter, "Bolt circle diameter");
+    const count = Number(holeCount);
+    if (!Number.isInteger(count) || count <= 0) {
+      throw new RangeError("Hole count must be a positive integer.");
+    }
+    const start = Number(startAngleDegrees);
+    const xCenter = Number(centerX);
+    const yCenter = Number(centerY);
+    if (![start, xCenter, yCenter].every(Number.isFinite)) {
+      throw new RangeError("Start angle and center coordinates must be valid numbers.");
+    }
+    const radius = circleDiameter / 2;
+    const angleStepDegrees = 360 / count;
+    const holes = Array.from({length:count}, (_, index) => {
+      const angleDegrees = start + index * angleStepDegrees;
+      const angle = angleDegrees * Math.PI / 180;
+      return {
+        number:index + 1,
+        angleDegrees,
+        x:xCenter + radius * Math.cos(angle),
+        y:yCenter + radius * Math.sin(angle),
+      };
+    });
+    return {radius, angleStepDegrees, centerX:xCenter, centerY:yCenter, holes};
+  }
+
+  function nearestDrillInRange(diameter, drills) {
+    if (!Number.isFinite(Number(diameter)) || !Array.isArray(drills) || drills.length === 0) return null;
+    const size = Number(diameter);
+    const values = drills.map(drill => Number(drill.dec));
+    if (values.some(value => !Number.isFinite(value))) return null;
+    const minimum = Math.min(...values);
+    const maximum = Math.max(...values);
+    if (size < minimum || size > maximum) return null;
+    return drills.reduce((nearest, drill) =>
+      Math.abs(Number(drill.dec) - size) < Math.abs(Number(nearest.dec) - size) ? drill : nearest
+    );
   }
 
   function rightTriangle({ solveFrom, sideA, sideB, hypotenuse, angleA }) {
@@ -348,18 +431,23 @@
     circleFrom,
     circularInterpolationFeed,
     boreStockPlan,
+    boltCircle,
     countersinkDepth,
+    depthDiameterRatio,
     effectiveCuttingDiameter,
     feedFromChipLoad,
     feedFromIpr,
     helixAngle,
     helixPitch,
+    nearestDrillInRange,
+    parseFraction,
     radialChipThinningFactor,
     resolveSurfaceSpeed,
     rightTriangle,
     rpmFromSfm,
     sfmFromRpm,
     tapDrillRange,
+    taperGeometry,
     threadMill,
     scallopGeometry,
     truePosition,

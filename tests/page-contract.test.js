@@ -27,7 +27,7 @@ test('no inline event handlers (MB Forge runs Sine under script-src \'self\')', 
 test('every data-click / data-change action names an existing function', () => {
   const { parseActions } = require('../js/actions.js');
   const actions = [...html.matchAll(/data-(?:click|change)="([^"]*)"/g)].map(match => match[1]);
-  assert.ok(actions.length > 60, 'Expected the calculator buttons to use data actions.');
+  assert.ok(actions.length > 55, 'Expected calculator controls to use data actions after consolidating repeated thread selectors.');
   const functions = new Set([...app.matchAll(/function\s+([A-Za-z0-9_]+)\s*\(/g)].map(match => match[1]));
   const names = actions.flatMap(text => parseActions(text).map(action => action.name));
   assert.deepEqual([...new Set(names)].filter(name => !functions.has(name)), []);

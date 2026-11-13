@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="#0070d8" name="theme-color"/>
+<meta content="#17232c" name="theme-color"/>
 <title>SINE</title>
 <link href="./manifest.webmanifest" rel="manifest"/>
 <link href="./icons/mb-sine.svg" rel="icon" type="image/svg+xml"/>
@@ -13,11 +13,14 @@
 <script src="./js/host.js"></script>
 </head>
 <body>
-<div class="topbar">
+<header class="topbar">
 <h1>SINE</h1>
-<div class="nav"><a href="#shopsetup">Shop Setup</a><a href="#speeds">Speeds and Feeds</a><a href="#drillcharts">Drill Charts</a><a href="#threads">Threads and Taps</a><a href="#milling">Geometry and Helix</a><a href="#advanced">Advanced Math</a><a href="#shopmath">Shop Math</a><a href="#reference">Reference</a></div>
-</div>
-<div class="wrap">
+</header>
+<div class="workbench">
+<nav class="nav" aria-label="Calculator categories">
+<a href="#shopsetup">Shop Setup</a><a href="#speeds">Speeds and Feeds</a><a href="#drillcharts">Drill Charts</a><a href="#threads">Threads and Taps</a><a href="#milling">Geometry and Helix</a><a href="#advanced">Advanced Math</a><a href="#shopmath">Shop Math</a><a href="#reference">Reference</a>
+</nav>
+<main class="wrap">
 <div class="sectionhead" id="shopsetup">Shop Setup</div>
 <div class="card workflow-card">
 <div class="workflow-heading">
@@ -53,16 +56,17 @@
 <button class="danger" data-click="deleteMachineProfile()" type="button">Delete Profile</button>
 </div>
 <div class="result result-info" id="machineProfileStatus">No machine limits selected.</div>
-<div class="workflow-output">
-<div>
-<strong>Latest shop result</strong>
-<div class="note" id="latestResultStatus">Run a calculation to enable copy and download.</div>
 </div>
-<div class="workflow-actions output-actions">
-<button class="secondary" disabled id="copyLatestButton" data-click="copyLatestResult()" type="button">Copy Result</button>
-<button class="ghost" disabled id="downloadLatestButton" data-click="downloadLatestResult()" type="button">Download Note</button>
+<div class="card" id="shopToolsCard" hidden>
+<h2>Shop Tools</h2>
+<div class="note" id="shopToolsNote"></div>
+<div class="row3">
+<div><label for="shopToolSearch">Search description, part or maker</label><input id="shopToolSearch" type="search" data-change="searchShopTools()"/></div>
+<div><label for="shopToolBook">Toolbook</label><select id="shopToolBook" data-change="searchShopTools()"><option value="">All toolbooks</option></select></div>
+<div><label for="shopToolKind">Kind</label><select id="shopToolKind" data-change="searchShopTools()"><option value="">All kinds</option><option value="drill">Drill</option><option value="mill">Mill</option><option value="chamfer">Chamfer</option><option value="spot">Spot or center drill</option><option value="threadmill">Thread mill</option><option value="tap">Tap</option><option value="bore">Boring bar</option><option value="ream">Reamer</option><option value="other">Other</option></select></div>
 </div>
-</div>
+<div class="shop-tool-list" id="shopToolResults"></div>
+<div class="result result-info" id="shopToolDetail" hidden></div>
 </div>
 <div class="sectionhead" id="speeds">Speeds and Feeds</div>
 <div class="grid2 compact-grid">
@@ -127,17 +131,17 @@
 </div>
 </div>
 <div id="drillBox">
-<label for="ipr">IPR</label>
+<label for="ipr">Feed per revolution (in/rev)</label>
 <input id="ipr" step="any" type="number" value="0.004"/>
 </div>
 <div id="millingBox" style="display:none;">
 <div class="row2">
 <div>
-<label for="fpt" id="fptLabel">FPT or IPT</label>
+<label for="fpt" id="fptLabel">Feed per tooth (in/tooth)</label>
 <input id="fpt" step="any" type="number" value="0.008"/>
 </div>
 <div id="stepoverWrap">
-<label for="stepover">Radial stepover</label>
+<label for="stepover">Radial stepover (tool diameter units)</label>
 <input id="stepover" step="any" type="number" value="0.250"/>
 </div>
 </div>
@@ -150,7 +154,7 @@
 <button data-click="calcMain()">Calculate</button>
 <div class="result" id="mainResult"></div>
 <div class="note">
-Choose the speed calculation basis, then enter the enabled SFM or RPM value. Drill mode uses IPR. Endmill mode uses radial stepover for chip thinning. Face mill and shoulder mill modes ignore radial stepover in the main calculation.
+Choose SFM or RPM as the speed input. Feed inputs and displayed feed rates are imperial: IPR is inches/revolution, FPT is inches/tooth, and feed rate is IPM. Tool diameter and stepover use the selected inch or mm unit. Endmill mode uses radial stepover for chip thinning; face and shoulder modes ignore stepover.
 </div>
 </div>
 <div class="card">
@@ -202,7 +206,7 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Dri
 <input id="turnRpm" step="any" type="number" value=""/>
 </div>
 <div>
-<label for="turnIpr">IPR</label>
+<label for="turnIpr">Feed per revolution (in/rev)</label>
 <input id="turnIpr" step="any" type="number" value="0.010"/>
 </div>
 </div>
@@ -214,7 +218,7 @@ Choose the speed calculation basis, then enter the enabled SFM or RPM value. Dri
 <button data-click="calcTurningMain()">Calculate</button>
 <div class="result" id="turnResult"></div>
 <div class="note">
-Choose the speed calculation basis, then enter the enabled SFM or RPM value. Feed is shown from RPM × IPR.
+Choose SFM or RPM as the speed input. Feed inputs and outputs are imperial: IPR is inches/revolution and calculated feed is IPM.
 </div>
 </div>
 </div>
@@ -284,210 +288,34 @@ Bare decimal values are treated as inches; include mm for metric input.
 <option value="metric">Metric</option>
 </select>
 </div>
-<div>
-<label for="peckMaterial">Material</label>
-<select id="peckMaterial">
-<option value="cast">Cast Iron</option>
-<option value="steel">Steel</option>
-<option value="stainless">Stainless</option>
-<option value="aluminum">Aluminum</option>
-</select>
-</div>
 </div>
 <button data-click="calcPeck()">Calculate Peck Guidance</button>
 <div class="result" id="peckResult"></div>
 </div></div>
 <div class="sectionhead" id="threads">Threads and Taps</div>
-<div class="grid2 compact-grid"><div class="card">
-<h2>Tap Drill Check</h2>
-<div class="row2">
-<div>
-<label for="threadType">Thread standard</label>
-<select id="threadType" data-change="loadThreadChart()">
-<option value="UNC">UNC</option>
-<option value="UNF">UNF</option>
-<option value="NPT">NPT</option>
-<option value="METRIC">Metric</option>
-</select>
-</div>
-<div>
-<label for="threadSelect">Thread or tap size</label>
-<select id="threadSelect" data-change="syncThreadToolsFromTap(); calcTapSearch()"></select>
-</div>
-</div>
-<div class="row2">
-<div>
-<label for="tapStyle">Tap style</label>
-<select id="tapStyle" data-change="calcTapSearch()">
-<option value="cut">Cutting Tap</option>
-<option value="form">Form Tap</option>
-</select>
-</div>
-<div>
-<label for="candidateDrill">Check a drill size</label>
-<input id="candidateDrill" placeholder="Optional: #7, 13/64, .201, 5.1 mm" type="text"/>
-</div>
-</div>
-<button data-click="calcTapSearch()">Check Tap Drill</button>
-<div class="result" id="tapResult"></div>
-<div class="note">
-Straight threads show a calculated drill range and alternatives. NPT shows a listed cutting-tap drill reference; NPT form-tap sizing is intentionally not estimated.
-</div>
-</div><div class="card">
-<h2>Tap Speeds and Feeds</h2>
-<div class="row2">
-<div>
-<label for="tapCalcThreadType">Thread standard</label>
-<select id="tapCalcThreadType" data-change="loadTapCalcThreadChart()">
-<option value="UNC">UNC</option>
-<option value="UNF">UNF</option>
-<option value="NPT">NPT</option>
-<option value="METRIC">Metric</option>
-</select>
-</div>
-<div>
-<label for="tapCalcSelect">Thread or tap size</label>
-<select id="tapCalcSelect" data-change="applyTapCalcSelect()"></select>
-</div>
-</div>
-<div class="row3">
-<div>
-<label for="tapCalcStyle">Tap style</label>
-<select id="tapCalcStyle" data-change="applyTapPreset()">
-<option value="cut">Cutting Tap</option>
-<option value="form">Form Tap</option>
-</select>
-</div>
-<div>
-<label for="tapToolMaterial">Tap tool material</label>
-<select id="tapToolMaterial" data-change="applyTapPreset()">
-<option value="hss">HSS</option>
-<option value="carbide">Carbide</option>
-</select>
-</div>
-<div>
-<label for="tapWorkMaterial">Work material</label>
-<select id="tapWorkMaterial"></select>
-</div>
-</div>
-<div class="row2">
-<div>
-<label for="tapCalcMajor">Major diameter</label>
-<input id="tapCalcMajor" step="any" type="number" value="0.250"/>
-</div>
-<div>
-<label for="tapCalcPitch">TPI or pitch</label>
-<input id="tapCalcPitch" step="any" type="number" value="20"/>
-</div>
-</div>
-<div class="row2">
-<div>
-<label for="tapCalcSfm">SFM</label>
-<input id="tapCalcSfm" step="any" type="number" value=""/>
-</div>
-<div>
-<label for="tapCalcRpm">RPM</label>
-<input id="tapCalcRpm" step="any" type="number" value=""/>
-</div>
-</div>
-<label for="tapSpeedBasis">Speed calculation basis</label>
-<select id="tapSpeedBasis" data-change="updateSpeedBasisUI('tap')">
-<option value="sfm">Use SFM to calculate RPM</option>
-<option value="rpm">Use RPM to calculate SFM</option>
-</select>
-<label for="tapPresetLevel">Shop baseline level</label>
-<select id="tapPresetLevel" data-change="applyTapPreset()">
-<option value="conservative">Low / conservative</option>
-<option selected="selected" value="standard">Standard starting point</option>
-<option value="upper">Upper baseline — verify setup</option>
-</select>
-<div class="quick">
-<button class="secondary" data-click="applyTapPreset()">Apply Shop Baseline</button>
-<button data-click="calcTapSpeedFeed()">Calculate</button>
-<button class="ghost" data-click="clearTapCalc()">Clear Variables</button>
-</div>
-<div class="result" id="tapSpeedResult"></div>
+<div class="card thread-setup"><h2>Thread Setup</h2><div class="row3">
+<div><label for="threadType">Thread standard</label><select id="threadType" data-change="loadThreadChart()"><option value="UNC">UNC</option><option value="UNF">UNF</option><option value="NPT">NPT</option><option value="METRIC">Metric</option></select></div>
+<div><label for="threadSelect">Thread or tap size</label><select id="threadSelect" data-change="syncThreadToolsFromTap()"></select></div>
+<div><label for="tapStyle">Tap style</label><select id="tapStyle" data-change="calcTapSearch(); applyTapPreset()"><option value="cut">Cutting Tap</option><option value="form">Form Tap</option></select></div>
+</div><p class="note">This selection drives the thread tools below. Diameter and pitch fields can still be edited for a custom thread.</p></div>
+<div class="grid2 compact-grid"><div class="card"><h2>Tap Drill Check</h2>
+<label for="candidateDrill">Check a drill size</label><input id="candidateDrill" placeholder="Optional: #7, 13/64, .201, 5.1 mm" type="text"/>
+<button data-click="calcTapSearch()">Check Tap Drill</button><div class="result" id="tapResult"></div>
+<div class="note">Straight threads show a calculated drill range and alternatives. NPT shows a listed cutting-tap drill reference; NPT form-tap sizing is intentionally not estimated.</div>
+</div><div class="card"><h2>Tap Speeds and Feeds</h2>
+<div class="row3"><div><label for="tapToolMaterial">Tap tool material</label><select id="tapToolMaterial" data-change="applyTapPreset()"><option value="hss">HSS</option><option value="carbide">Carbide</option></select></div><div><label for="tapWorkMaterial">Work material</label><select id="tapWorkMaterial"></select></div><div><label for="tapPresetLevel">Shop baseline level</label><select id="tapPresetLevel" data-change="applyTapPreset()"><option value="conservative">Low / conservative</option><option selected="selected" value="standard">Standard starting point</option><option value="upper">Upper baseline — verify setup</option></select></div></div>
+<div class="row2"><div><label id="tapCalcMajorLabel" for="tapCalcMajor">Major diameter (in)</label><input id="tapCalcMajor" step="any" type="number" value="0.250"/></div><div><label id="tapCalcPitchLabel" for="tapCalcPitch">Pitch (TPI)</label><input id="tapCalcPitch" step="any" type="number" value="20"/></div></div>
+<div class="row2"><div><label for="tapCalcSfm">SFM</label><input id="tapCalcSfm" step="any" type="number" value=""/></div><div><label for="tapCalcRpm">RPM</label><input id="tapCalcRpm" step="any" type="number" value=""/></div></div>
+<label for="tapSpeedBasis">Speed calculation basis</label><select id="tapSpeedBasis" data-change="updateSpeedBasisUI('tap')"><option value="sfm">Use SFM to calculate RPM</option><option value="rpm">Use RPM to calculate SFM</option></select>
+<div class="quick"><button class="secondary" data-click="applyTapPreset()">Apply Shop Baseline</button><button data-click="calcTapSpeedFeed()">Calculate</button><button class="ghost" data-click="clearTapCalc()">Clear Variables</button></div><div class="result" id="tapSpeedResult"></div>
 </div></div>
-<div class="grid2 compact-grid center-narrow"><div class="card">
-<h2>Thread Mill Helper</h2>
-<div class="row2">
-<div>
-<label for="tmThreadType">Thread standard</label>
-<select id="tmThreadType" data-change="loadThreadMillChart()">
-<option value="UNC">UNC</option>
-<option value="UNF">UNF</option>
-<option value="NPT">NPT</option>
-<option value="METRIC">Metric</option>
-</select>
-</div>
-<div>
-<label for="tmSelect">Thread or tap size</label>
-<select id="tmSelect" data-change="applyThreadMillSelect()"></select>
-</div>
-</div>
-<div class="row3">
-<div>
-<label for="tmMajor">Major diameter</label>
-<input id="tmMajor" step="any" type="number" value="0.500"/>
-</div>
-<div>
-<label for="tmPitch">TPI or pitch</label>
-<input id="tmPitch" step="any" type="number" value="13"/>
-</div>
-<div>
-<label for="tmToolDia">Thread mill diameter</label>
-<input id="tmToolDia" step="any" type="number" value="0.1875"/>
-</div>
-</div>
-<div class="row3">
-<div>
-<label for="tmRpm">RPM</label>
-<input id="tmRpm" step="any" type="number" value="1800"/>
-</div>
-<div>
-<label for="tmFpt">FPT</label>
-<input id="tmFpt" step="any" type="number" value="0.0015"/>
-</div>
-<div>
-<label for="tmDepth">Threaded length or depth</label>
-<input id="tmDepth" step="any" type="number" value="0.500"/>
-</div>
-</div>
-<div class="row3">
-<div>
-<label for="tmFlutes">Cutting teeth or flutes</label>
-<input id="tmFlutes" min="1" step="1" type="number" value="3"/>
-</div>
-<div>
-<label for="tmLocation">Thread location</label>
-<select id="tmLocation">
-<option value="internal">Internal thread</option>
-<option value="external">External thread</option>
-</select>
-</div>
-<div>
-<label for="tmUnits">Tool diameter and depth units</label>
-<select id="tmUnits">
-<option value="inch">Inch</option>
-<option value="metric">Metric</option>
-</select>
-</div>
-</div>
-<button data-click="calcThreadMill()">Calculate Thread Mill</button>
-<div class="result" id="threadMillResult"></div>
-</div><div class="card">
-<h2>NPT Helper</h2>
-<label for="nptSize">NPT nominal size</label>
-<select id="nptSize"></select>
-<label for="nptTurns">Thread turns desired</label>
-<input id="nptTurns" step="any" type="number" value="4"/>
-<button data-click="calcNptHelper()">Calculate NPT Approximation</button>
-<div class="result" id="nptHelperResult"></div>
-<div class="note">
-This is only a simple programming helper using pitch and turns. Actual gauging and functional depth should still be verified with the real thread form and inspection method.
-</div>
-</div></div>
-<div class="sectionhead" id="milling">Geometry and Helix</div><div class="grid-auto"><div class="card">
+<div class="grid2 compact-grid center-narrow"><div class="card"><h2>Thread Mill Helper</h2>
+<div class="row3"><div><label id="tmMajorLabel" for="tmMajor">Major diameter (in)</label><input id="tmMajor" step="any" type="number" value="0.500"/></div><div><label id="tmPitchLabel" for="tmPitch">Pitch (TPI)</label><input id="tmPitch" step="any" type="number" value="13"/></div><div><label for="tmToolDia">Thread mill diameter (selected units)</label><input id="tmToolDia" step="any" type="number" value="0.0625"/></div></div>
+<div class="row3"><div id="tmMinorWrap" hidden><label id="tmMinorLabel" for="tmMinor">Minor diameter (in)</label><input id="tmMinor" step="any" type="number" value=""/></div><div><label for="tmRpm">RPM</label><input id="tmRpm" step="any" type="number" value="1800"/></div><div><label for="tmFpt">Feed per tooth (in/tooth)</label><input id="tmFpt" step="any" type="number" value="0.0015"/></div><div><label for="tmDepth">Threaded length or depth</label><input id="tmDepth" step="any" type="number" value="0.500"/></div></div>
+<div class="row3"><div><label for="tmFlutes">Cutting teeth or flutes</label><input id="tmFlutes" min="1" step="1" type="number" value="3"/></div><div><label for="tmLocation">Thread location</label><select id="tmLocation" data-change="toggleThreadLocation(); calcThreadMill()"><option value="internal">Internal thread</option><option value="external">External thread</option></select></div><div><label for="tmUnits">Tool diameter and depth units</label><select id="tmUnits" data-change="changeThreadMillUnits()"><option value="inch">Inch</option><option value="metric">Metric</option></select></div></div>
+<button data-click="calcThreadMill()">Calculate Thread Mill</button><div class="result" id="threadMillResult"></div>
+</div><div class="card" id="nptHelperCard" hidden><h2>NPT Helper</h2><p class="note">Uses the selected NPT thread above.</p><label for="nptTurns">Thread turns desired</label><input id="nptTurns" step="any" type="number" value="4"/><button data-click="calcNptHelper()">Calculate NPT Approximation</button><div class="result" id="nptHelperResult"></div><div class="note">Approximate programming aid only. Verify functional depth with the proper thread form and inspection gage.</div></div></div>
+<div class="sectionhead" id="milling">Geometry and Helix</div><p class="note">For geometry tools, use the same length unit for every input in that card. The taper calculator specifically expects inches because it reports taper per inch and per foot.</p><div class="grid-auto"><div class="card">
 <h2>Chamfer and Countersink Depth</h2>
 <div class="row2">
 <div>
@@ -545,11 +373,11 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 <div class="row2">
 <div>
-<label for="helixAngleDeg">Helix angle in degrees</label>
+<label for="helixAngleDeg">Helix angle (degrees; lengths use one unit)</label>
 <input id="helixAngleDeg" step="any" type="number" value="3"/>
 </div>
 <div>
-<label for="targetPitch">Target pitch per revolution</label>
+<label for="targetPitch">Target axial pitch per revolution (same length unit)</label>
 <input id="targetPitch" step="any" type="number" value=""/>
 </div>
 </div>
@@ -845,7 +673,7 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 <tr><td>Tapping</td><td>Feed IPM = RPM × Pitch</td><td>Rigid tap feed rate</td></tr>
 <tr><td>Tap drill</td><td>Tap drill ≈ Major dia − (1.299038 × pitch × thread percent)</td><td>Cutting tap drill size (75 percent thread typical)</td></tr>
 <tr><td>Tap drill</td><td>Form tap drill ≈ Major dia − (0.68 × pitch × thread percent)</td><td>Form (roll) tap drill size (65 percent thread typical)</td></tr>
-<tr><td>Thread milling</td><td>Centerline feed = RPM × teeth × FPT × (major dia ∓ tool dia) / major dia</td><td>Programmed thread-mill feed: minus for internal, plus for external threads</td></tr>
+<tr><td>Thread milling</td><td>Programmed feed = edge feed × centerline dia / reference dia</td><td>Internal: (major − tool) / major. External: (minor + tool) / minor.</td></tr>
 <tr><td>Point depth</td><td>Depth = (Dia / 2) / tan(included angle / 2)</td><td>Drill point, spot, or countersink depth</td></tr>
 <tr><td>Chamfer</td><td>Depth past the hole edge = chamfer size / tan(included angle / 2), chamfer size = (top dia − hole dia) / 2</td><td>Chamfer or countersink depth from where the tool touches the hole</td></tr>
 <tr><td>Right triangle</td><td>Hypotenuse = sqrt(A^2 + B^2)</td><td>Find diagonal length from two sides</td></tr>
@@ -890,6 +718,20 @@ This is only a simple programming helper using pitch and turns. Actual gauging a
 </div>
 <div class="note">Values are shown low / standard / upper. They are MB baselines, not manufacturer cutting data. ISO material groups follow the <a href="https://www.sandvik.coromant.com/en-us/knowledge/materials/workpiece-materials" rel="noopener noreferrer" target="_blank">Sandvik Coromant workpiece-material classification</a>.</div>
 </div></div>
+</main>
+<aside class="result-rail" aria-label="Latest calculation result">
+<div class="workflow-output">
+<div>
+<strong>Latest shop result</strong>
+<div class="note" id="latestResultStatus" aria-live="polite">Run a calculation to enable copy and download.</div>
+</div>
+<pre class="latest-result-detail" id="latestResultDetail" aria-live="polite">No result yet.</pre>
+<div class="workflow-actions output-actions">
+<button class="secondary" disabled id="copyLatestButton" data-click="copyLatestResult()" type="button">Copy Result</button>
+<button class="ghost" disabled id="downloadLatestButton" data-click="downloadLatestResult()" type="button">Download Note</button>
+</div>
+</div>
+</aside>
 </div>
 <script src="./js/data.js"></script>
 <script src="./js/core.js"></script>

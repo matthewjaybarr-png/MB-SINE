@@ -1,5 +1,40 @@
 What changed in each MB Sine version (newest first).
 
+== 1.2.0
+Shop tools, Windows app and a second calculation audit
+- Shop Tools (Shop Setup): the shop's own tools from the Hive toolbooks
+  (391-392, 464-465, 467-468, 469-471, 476-477, 487-488, 372, 459).
+  Search by description, part or maker; pick a tool to see its parts,
+  machines and any proven S/F from the toolbook, and send its diameter,
+  teeth or chamfer angle to Milling and Drilling, Spot, Chamfer or Thread
+  Mill. npm run import:hive writes shop/tools.js, which is never
+  committed (job and part numbers); only the Windows app and the Forge
+  copy carry it. The website has no Shop Tools card.
+- Windows app: tools/release-windows.sh builds a per-user installer (no
+  admin) with Matt's Sine icon.
+- External thread-mill feed is compensated on the thread major,
+  (major + tool) / major, per Kennametal TMS. The previous minor-based
+  ratio overfed the major diameter.
+- 7/16-14 tap drill is U (.368, 75 % thread); 23/64 gave 84 %. A test now
+  keeps every UNC, UNF and metric chart tap drill at 65-80 % thread.
+- Fixed workbench layout: categories on the left, the latest result on
+  the right.
+- The offline cache name moved to mb-sine-v3 so installed copies pick up
+  the new files.
+- Thread standard, size, and tap style are selected once and shared by the
+  tap drill, tap speed/feed, thread-mill, and NPT helpers. Removed repeated
+  selectors that could leave the calculations on different thread sizes.
+- Feed labels now state inches per revolution/tooth and IPM, including when
+  diameter inputs use metric units. Endmill results distinguish target chip
+  load from the reduced programmed chip load after radial chip thinning.
+- Switching thread-mill tool/depth units now converts the values while
+  preserving their physical size.
+- Peck Guide reports depth-to-diameter ratio instead of implying a universal
+  material-only peck size. Tool geometry, coolant, chip form, and the control
+  determine the peck cycle.
+- Geometry inputs now reject zero or invalid values and report consistent
+  unit labels. Fraction input rejects zero denominators and trailing text.
+
 == 1.1.1
 Sine in the Forge panel looks like Forge
 - Inside Forge, Sine takes Forge's own colours and font from the Forge
@@ -42,6 +77,7 @@ Calculation audit (every section checked against standard references)
 - Tap Drill Check: the smallest and largest drills are always inside the
   calculated range, the thread-percent range is shown, and cutting taps
   also show the standard chart tap drill.
+- 1/8-27 NPT uses the shop-selected R (.339 inch) tap drill.
 - Chamfer depth says "from the tool tip" when a tip diameter is entered.
 - Checked and unchanged: all 106 number and letter drill sizes, UNC, UNF
   and metric thread data and chart tap drills, speeds, chip thinning,
