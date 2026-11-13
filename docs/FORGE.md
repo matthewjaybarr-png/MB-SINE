@@ -33,7 +33,8 @@ The build stops with an error if the page would break Forge's Content Security P
 
 Only the look and the offline handling. No calculation changes.
 
-- Forge's graphite colours and its MB Mono NL font. The font files are Forge's own (`ui/fonts/`), found at `../../fonts/` from `ui/vendor/sine/`. Anywhere else, Sine falls back to Consolas.
+- Forge's own colours and font. `js/host.js` (`followForgeTheme`) copies Forge's theme tokens (`--panel`, `--rule`, `--dykem`, `--red`, `--ui` and the rest of `FORGE_TOKENS`) from the Forge page onto Sine's page as `--forge-*`, and copies them again when Forge's Settings > Font changes them, so a new Forge theme or font needs no change in Sine. Opened with `?host=forge` outside Forge, Sine uses the same colours written into `css/styles.css`. The font files are Forge's own (`ui/fonts/`), found at `../../fonts/` from `ui/vendor/sine/`. Anywhere else, Sine falls back to Consolas.
+- Sized for Forge's panel (460 px, down to 320 px): the section tabs wrap and nothing scrolls sideways.
 - No service worker and no Online / Offline badge. Forge ships the files.
 - No Google Font and no web-app manifest.
 - Machine profiles and remembered selections are kept in Forge's web storage, separate from the website's.

@@ -1,5 +1,17 @@
 What changed in each MB Sine version (newest first).
 
+== 1.1.1
+Sine in the Forge panel looks like Forge
+- Inside Forge, Sine takes Forge's own colours and font from the Forge
+  window (backgrounds, text, borders, the blue, inputs, buttons and
+  scroll bars), so a new Forge theme or font changes Sine too. Red is
+  only for Delete Profile; a machine-limit warning is amber.
+- The section tabs wrap at the panel width, and a table too wide for a
+  narrow panel scrolls inside its card: the panel never scrolls sideways.
+- Inside Forge, the note says profiles are saved by Forge on this PC,
+  not "in this browser".
+- No number and no formula changed. The website looks as before.
+
 == 1.1.0
 Ready for MB Forge and the MB suite
 - Sine runs inside MB Forge. npm run build:forge writes dist/forge/sine/,
