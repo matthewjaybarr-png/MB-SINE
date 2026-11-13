@@ -49,6 +49,8 @@ Used to support keeping nodular/ductile iron, gray iron, and ADI distinct rather
 
 Guhring explains that a single chart size is normally an approximate thread-percentage choice and that lower percentages can improve tap life. OSG provides product/chart references used for the published pipe-tap entries. Large NPT entries marked `reference` in `js/data.js` remain verification-required values rather than manufacturer-certified recommendations.
 
+The shop-selected 1/8-27 NPT tap drill is R (.339 inch). Published charts can differ; this entry records the shop's selected size.
+
 ### Tapping speed context
 
 - [OSG — A-SFT spiral-flute tap product data](https://osgtool.com/content/literature/8002024CA/List%2016505%20-%20A%20BRAND%20A-SFT.pdf)

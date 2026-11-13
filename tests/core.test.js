@@ -31,13 +31,22 @@ test('thread-mill feed includes cutting-edge count and is programmed at the tool
   closeTo(result.feedIpm, 2.025);                   // what goes in the program (G41 off, centerline)
 });
 
-test('external thread-mill feed is scaled up at the centerline', () => {
+test('external thread-mill feed uses the component minor diameter for compensation', () => {
   const result = calc.threadMill({
-    threadMajorInches: 1, toolDiameterInches: 0.5, rpm: 2000, cuttingEdges: 4, chipLoad: 0.001,
+    threadMajorInches: 1, threadMinorInches: 0.75, toolDiameterInches: 0.5, rpm: 2000, cuttingEdges: 4, chipLoad: 0.001,
     pitchInches: 1 / 8, threadLocation: 'external',
   });
   closeTo(result.peripheryFeedIpm, 8);
-  closeTo(result.feedIpm, 12);                      // 8 x 1.5 / 1
+  closeTo(result.centerlineDiameter, 1.25);
+  closeTo(result.compensationRatio, 1.25 / 0.75);
+  closeTo(result.feedIpm, 13.333333333333334);      // 8 x (0.75 + 0.5) / 0.75
+});
+
+test('external thread-mill feed requires a component minor diameter', () => {
+  assert.throws(() => calc.threadMill({
+    threadMajorInches: 1, toolDiameterInches: 0.25, rpm: 1000, cuttingEdges: 4, chipLoad: 0.001,
+    pitchInches: 0.05, threadLocation: 'external',
+  }), /minor diameter/i);
 });
 
 test('thread-mill centerline supports internal and external threads', () => {
@@ -53,18 +62,60 @@ test('thread-mill centerline supports internal and external threads', () => {
 
   closeTo(calc.threadMill({
     threadMajorInches: 1,
+    threadMinorInches: 0.8,
     toolDiameterInches: 0.25,
     rpm: 1000,
     cuttingEdges: 4,
     chipLoad: 0.001,
     pitchInches: 0.05,
     threadLocation: 'external',
-  }).centerlineDiameter, 1.25);
+  }).centerlineDiameter, 1.05);
 });
 
 test('circle calculation obeys the selected source field', () => {
   closeTo(calc.circleFrom('radius', 2).diameter, 4);
   closeTo(calc.circleFrom('circumference', Math.PI * 3).diameter, 3);
+});
+
+test('depth-to-diameter ratio validates both positive dimensions', () => {
+  closeTo(calc.depthDiameterRatio(1.5, 0.375), 4);
+  assert.throws(() => calc.depthDiameterRatio(0, 0.375), /greater than zero/);
+});
+
+test('taper geometry calculates angles and rejects zero length or reversed diameters', () => {
+  const result = calc.taperGeometry(1, 0.75, 1);
+  closeTo(result.diameterChange, 0.25);
+  closeTo(result.perSideAngleDegrees, 7.1250163489, 1e-8);
+  closeTo(result.taperPerInch, 0.25);
+  closeTo(result.taperPerFoot, 3);
+  assert.throws(() => calc.taperGeometry(1, 0.75, 0), /length.*greater than zero/i);
+  assert.throws(() => calc.taperGeometry(0.75, 1, 1), /large diameter.*small diameter/i);
+});
+
+test('bolt-circle geometry returns equally spaced points around the selected center', () => {
+  const result = calc.boltCircle({diameter:4, holeCount:4, startAngleDegrees:0, centerX:1, centerY:2});
+  assert.equal(result.angleStepDegrees, 90);
+  closeTo(result.holes[0].x, 3);
+  closeTo(result.holes[0].y, 2);
+  closeTo(result.holes[1].x, 1);
+  closeTo(result.holes[1].y, 4);
+  closeTo(result.holes[2].x, -1);
+  closeTo(result.holes[2].y, 2);
+  assert.throws(() => calc.boltCircle({diameter:4, holeCount:0}), /hole count.*positive integer/i);
+});
+
+test('fraction parser accepts shop fractions and rejects zero denominators or trailing text', () => {
+  assert.equal(calc.parseFraction('1 1/2'), 1.5);
+  assert.equal(calc.parseFraction('-1 1/2'), -1.5);
+  assert.equal(calc.parseFraction('13/64'), 13 / 64);
+  assert.throws(() => calc.parseFraction('1/0'), /denominator/i);
+  assert.throws(() => calc.parseFraction('0.257junk'), /valid fraction or decimal/i);
+});
+
+test('nearest drill lookup returns no match outside the built-in chart range', () => {
+  const drills = [{ name: '#80', dec: 0.0135 }, { name: '2', dec: 2 }];
+  assert.equal(calc.nearestDrillInRange(2.5, drills), null);
+  assert.equal(calc.nearestDrillInRange(1.9, drills).name, '2');
 });
 
 test('right-triangle calculation obeys the selected input pair', () => {

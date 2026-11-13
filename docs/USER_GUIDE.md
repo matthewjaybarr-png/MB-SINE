@@ -26,22 +26,25 @@ The turning calculator covers OD/face turning, boring, grooving, and drilling on
 
 MB baselines are starting assumptions. Enter manufacturer values when they are available.
 
+Feed inputs are imperial even when tool diameter and stepover are entered in millimeters: IPR is inches/revolution, FPT is inches/tooth, and feed output is IPM. The result spells out the programmed feed after chip thinning.
+
 ### Drill Charts and Sizes
 
 - **Quick Select** displays values from the built-in drill chart.
 - **Search or Convert** accepts standard drill names, fractions, decimal inches, and millimeters.
 - **Point and Spot Depth** gives a drill's point length, or the depth a spot or center drill needs to make a given diameter.
-- **Peck Guide** classifies hole depth by diameter ratio.
+- **Peck Guide** reports depth-to-diameter ratio. Choose a peck cycle using the drill maker's and controller's guidance for the tool, material, coolant, and chip form.
 
 Peck output is general guidance. Drill geometry, chip form, coolant delivery, and manufacturer recommendations still control the actual cycle.
 
 ### Threads and Taps
 
 - **Tap Drill Check** covers UNC, UNF, metric, and NPT threads.
+- Choose the thread standard, size, and tap style once in **Thread Setup**. That selection fills the tap speed/feed and thread mill thread fields; those fields remain editable for custom threads.
 - Cutting taps and form taps are handled separately. Form-tap drills are larger (0.68 × pitch instead of 1.299 × pitch), and the standard chart drill is shown for cutting taps.
 - Unsupported NPT form-tap estimates are not invented; the calculator directs the user to manufacturer data.
 - **Tap Speeds and Feeds** calculates RPM and synchronized feed from thread pitch.
-- **Thread Mill Helper** includes flute count and internal/external centerline diameter, and gives the programmed feed at the tool centerline as well as the feed at the cutting edge.
+- **Thread Mill Helper** includes flute count and internal/external centerline compensation, and gives the programmed feed at the tool centerline as well as the feed at the cutting edge. External threads require the actual minor diameter because it depends on thread class and tolerance.
 - **NPT Helper** gives pitch-and-turn travel guidance, not finished-thread gage depth.
 
 Always verify threaded work with the correct tap or thread-mill data and inspection method.

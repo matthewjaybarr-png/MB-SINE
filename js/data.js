@@ -174,7 +174,7 @@
     ],
     NPT: [
       {thread:"1/16-27 NPT",size:"1/16",major:0.3125,pitch:27,tap:"C",tapDec:0.2420,tapConfidence:"published"},
-      {thread:"1/8-27 NPT",size:"1/8",major:0.405,pitch:27,tap:"Q",tapDec:0.3320,tapConfidence:"published"},
+      {thread:"1/8-27 NPT",size:"1/8",major:0.405,pitch:27,tap:"R",tapDec:0.3390,tapConfidence:"published"},
       {thread:"1/4-18 NPT",size:"1/4",major:0.540,pitch:18,tap:"7/16",tapDec:0.4375,tapConfidence:"published"},
       {thread:"3/8-18 NPT",size:"3/8",major:0.675,pitch:18,tap:"37/64",tapDec:0.578125,tapConfidence:"published"},
       {thread:"1/2-14 NPT",size:"1/2",major:0.840,pitch:14,tap:"23/32",tapDec:0.71875,tapConfidence:"published"},

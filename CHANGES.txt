@@ -20,6 +20,21 @@ Ready for MB Forge and the MB suite
   the new files.
 
 Calculation audit (every section checked against standard references)
+- External thread-mill feed compensation now uses the entered thread minor
+  diameter and the machine-limit check uses that programmed centerline feed.
+- Thread standard, size, and tap style are selected once and shared by the
+  tap drill, tap speed/feed, thread-mill, and NPT helpers. Removed repeated
+  selectors that could leave the calculations on different thread sizes.
+- Feed labels now state inches per revolution/tooth and IPM, including when
+  diameter inputs use metric units. Endmill results distinguish target chip
+  load from the reduced programmed chip load after radial chip thinning.
+- Switching thread-mill tool/depth units now converts the values while
+  preserving their physical size.
+- Peck Guide reports depth-to-diameter ratio instead of implying a universal
+  material-only peck size. Tool geometry, coolant, chip form, and the control
+  determine the peck cycle.
+- Geometry inputs now reject zero or invalid values and report consistent
+  unit labels. Fraction input rejects zero denominators and trailing text.
 - Form-tap drills were too small: they used the cutting-tap constant.
   Form taps now use 0.68 x pitch at 55-75 % thread, so 1/4-20 gives #1
   (.228) instead of about #3 (.213), and M6 x 1 gives 5.56 mm.
@@ -30,6 +45,7 @@ Calculation audit (every section checked against standard references)
 - Tap Drill Check: the smallest and largest drills are always inside the
   calculated range, the thread-percent range is shown, and cutting taps
   also show the standard chart tap drill.
+- 1/8-27 NPT uses the shop-selected R (.339 inch) tap drill.
 - Chamfer depth says "from the tool tip" when a tip diameter is entered.
 - Checked and unchanged: all 106 number and letter drill sizes, UNC, UNF
   and metric thread data and chart tap drills, speeds, chip thinning,
