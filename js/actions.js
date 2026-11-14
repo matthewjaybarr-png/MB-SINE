@@ -3,7 +3,8 @@
  *
  * Markup names its action in data-click / data-change instead of onclick / onchange, e.g.
  *   <button data-click="calcMain()">          <select data-change="toggleCalcType(); updatePresetPreview()">
- *   <button data-click="setChamferAngle(30)"> <select data-change="updateSpeedBasisUI('tap')">
+ *   <button data-click="setChamferAngle(30)">  <input data-input="searchShopTools()"> (runs on every keystroke)
+ *   <select data-change="updateSpeedBasisUI('tap')">
  * Each call is a global function name with no argument or one number / quoted-string argument.
  * Nothing is evaluated as code, so the page runs under a strict Content Security Policy
  * (script-src 'self'), which is what MB Forge uses.
@@ -39,7 +40,7 @@
   }
 
   function bindActions(doc, scope) {
-    for (const type of ["click", "change"]) {
+    for (const type of ["click", "change", "input"]) {
       doc.addEventListener(type, event => {
         const target = event.target instanceof Element ? event.target.closest("[data-" + type + "]") : null;
         if (!target || (type === "click" && target.disabled)) return;

@@ -16,6 +16,32 @@ test("toolbook descriptions parse to kind, diameter, thread and maker", () => {
     ["18MM (.7086) 3X GEN3SYS 60318S-100F", { kind: "drill", dia: 0.7086 }],
     ['29.0" MM 1.141" SANDVIK 880 DRILL', { kind: "drill", dia: 1.1417 }],
     ["DRL FUR 3/8 NPT", { kind: "drill" }],
+    // tools that used to land in Other
+    [".87 x 11.5 PIT THD-M USE ON 12066 SST JOB", { kind: "threadmill" }],
+    ["18 PITCH - NPT THRD- ML", { kind: "threadmill" }],
+    ['1/8"-27 EXTENDED N.P.T.', { kind: "threadmill" }],
+    ["1.0-11.5 EXTENTED N.P.T. TAP", { kind: "tap" }],
+    ['3/4 .750" INGRSL HIGH FEED SURFER', { kind: "mill" }],
+    ["3\\4 .75 INGRSL H-FD SRFR WO JB", { kind: "mill" }],
+    ['3.540" FIN O.D. FLYCUTER', { kind: "mill" }],
+    ['.730" DIAMETER CENTER DEX', { kind: "spot" }],
+    ['1.156" C-DEX ( 313 GR BX JOB )', { kind: "spot" }],
+    ["CRITERION CB-1000S-TP", { kind: "bore" }],
+    ["VALENITE GTB-180 LH", { kind: "bore" }],
+    ['.880" DIA. "K" TOOL', { kind: "bore" }],
+    ["880 K-TL EXT 4.5 OUT FRM ED OF HLDR", { kind: "bore" }],
+    ['2.6860" VALENITE FINISH BORINGBAR', { kind: "bore" }],
+    ['2.500" X .310" SECO GRV CUT ( USED ON THE 508 JOB )', { kind: "groove" }],
+    ["2.48 X .104W GRVR SNDVK", { kind: "groove" }],
+    ['2.498" X .093 FIN. GROOVE', { kind: "groove" }],
+    ["8.1MM .319 INGRSL GLD TWIST USE ON SST", { kind: "drill" }],
+    ["33\\64 .516 SUMO MDW1310HGS5 5XD 5375 ALUM JOB", { kind: "drill" }],
+    // and ones that must not move
+    ["2.5 X 90° SUMO R - M", { kind: "mill" }],
+    ['1/4"-18 NC EXTENDED N.P.T. TAP', { kind: "tap" }],
+    ['1.500" K-TOOL 82° CHAMFER MILL', { kind: "chamfer" }],
+    ['2.5" 45 DEG K-TOOL', { kind: "chamfer" }],
+    [".127 SUMO CRBD ED-M SPCL O-ring GRV 38251-530 JOB", { kind: "mill" }],
   ];
   for (const [desc, want] of cases) {
     const got = p(desc);

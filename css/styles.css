@@ -516,3 +516,17 @@ font-size:13px;font-weight:inherit;padding:4px 9px;}
 .topbar .theme-pick{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
 .topbar .theme-pick select{width:auto;padding:3px 6px;font-size:12px}
 :root[data-host="app"] .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.profile-tools fieldset{border:1px solid var(--line);border-radius:6px;margin:10px 0 0;padding:6px 10px 8px;min-width:0}
+.profile-tools legend{font-size:12px;color:var(--muted);padding:0 4px}
+.profile-books{display:flex;flex-wrap:wrap;gap:4px 14px}
+.profile-book{display:flex;align-items:center;gap:6px;margin:0;font-weight:normal;white-space:nowrap}
+.profile-book input{width:auto;margin:0}
+.profile-tool{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:3px 0;min-width:0}
+.profile-tool span{overflow-wrap:anywhere;min-width:0;flex:1}
+.profile-tool button{flex:none;width:auto;padding:3px 10px}
+.shop-pick{margin:0 0 10px}
+.shop-pick-row{display:flex;gap:6px;flex-wrap:wrap;min-width:0}
+.shop-pick-row input{flex:1 1 120px;min-width:0}
+.shop-pick-row select{flex:3 1 220px;min-width:0;max-width:100%;text-overflow:ellipsis}
+details.shop-kind summary{cursor:pointer;padding:4px 0;font-weight:600}
+details.shop-kind{display:flex;flex-direction:column;gap:4px}

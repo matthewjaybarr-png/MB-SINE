@@ -45,6 +45,9 @@
         "type": "offlineInstaller",
         "silent": true
       }
+    },
+    "resources": {
+      "../fonts/OFL.txt": "fonts/OFL.txt"
     }
   }
 }

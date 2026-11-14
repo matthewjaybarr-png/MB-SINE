@@ -9,14 +9,17 @@
 // Most specific first: a tap holder line is still a tap; "X 45°" without DRILL is a chamfer tool.
 const KINDS = [
   ["probe", /\bPROBE\b/],
-  ["threadmill", /\b(THD|THRD|THREAD)\.?\s*MILL|\bTHD\s*ML\b/],
+  ["threadmill", /\b(THD|THRD|THREAD)\.?\s*MILL|\bTHD\s*ML\b|\b(THD|THRD)\s*-\s*ML?\b/],
   ["tap", /\bTAP\b(?!\s*DR)/],
-  ["spot", /\bSPOT|\bCNTR\.?\s*DR|\bCENTER\s*-?DR|CENTERDR|\bC['-]?\s*DR(I)?L/],
-  ["drill", /DRILL|\bDRL\b|\bSUMO\s*DR|GOLD\s*TWIST|\bGLD\s*TWST|GEN3SYS/],
+  ["threadmill", /EXTENDED\s+N\.?P\.?T/], // "EXTENDED N.P.T." with no TAP is a thread mill
+  ["spot", /\bSPOT|\bCNTR\.?\s*DR|\bCENTER\s*-?DR|CENTERDR|\bC['-]?\s*DR(I)?L|CENTR?E?R?\s*-?DEX|\bC-DEX\b/],
+  ["drill", /DRILL|\bDRL\b|\bSUMO\s*(DR|MDW)|GOLD\s*TWIST|\bGLD\s*TWI?ST|GEN3SYS/],
   ["ream", /\bREAM/],
-  ["bore", /\b[RF]\s*-\s*B\b|\bB[-.\s]?BAR\b|\bBOR(E|ING|INB)\b|\bBAR\b/],
-  ["chamfer", /CHAMF|\bCHF\b|\bCSK|C'?SINK|COUNTERSINK|\bX\s*\d{2,3}\s*°|\bX\s*(30|45|60|82|90|100)\b(?!\s*")/],
-  ["mill", /MILL|\bEM\b|\bE\/M\b|\b(R|F|HG|ED|FIN|RGH)\s*-\s*M\b|\bHOG|\bFACE\b|\bSHELL\b|\bFM\b|CUTTER|\bGRV\s*CT|\bSAW\b|TURBO|\bFLT\b|FLUTE|CHIP\s*SURFER|CENTR?E?\s*-?DEX|K\s*-?\s*TOOL/],
+  ["bore", /\b[RF]\s*-\s*B\b|\bB[-.\s]?BAR\b|\bBOR(E|ING|INB)\b|BORINGBAR|\bBAR\b|CRITERION|\bGTB-/],
+  ["chamfer", /CHAMF|\bCHF\b|\bCSK|C'?SINK|COUNTERSINK|\bX\s*\d{2,3}\s*°|\bX\s*(30|45|60|82|90|100)\b(?!\s*")|K\s*-?\s*TOOL.*(°|\bDEG)|(°|\bDEG).*K\s*-?\s*TOOL/],
+  ["bore", /"?\bK"?\s*-?\s*(TOOL|TL)\b/], // a K tool with no angle is a boring tool
+  ["groove", /\bGROOVE\b|\bGRV\s*CU?T|\bGVE\s*CUT|\bGRVR\b/],
+  ["mill", /MILL|\bEM\b|\bE\/M\b|\b(R|F|HG|ED|FIN|RGH|RAD)\s*-\s*M\b|\bHOG|\bFACE\b|\bSHELL\b|\bFM\b|CUTTER|\bSAW\b|TURBO|\bFLT\b|FLUTE|SURFER|\bSRFR\b|\bH(I|IGH)?\s*-?\s*F(EE)?D\b|FLY\s*-?CUT|\bDRM\s*CUT|\bROUGH\b/],
 ];
 
 const MAKERS = [

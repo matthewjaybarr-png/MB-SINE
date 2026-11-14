@@ -90,9 +90,23 @@ writeStoredJson(ACTIVE_MACHINE_STORAGE_KEY, profile ? profile.id : "");
 gid("machineProfileName").value = profile ? profile.name : "";
 gid("machineMaxRpm").value = profile ? profile.maxRpm : "0";
 gid("machineMaxFeed").value = profile ? profile.maxFeedIpm : "0";
-renderMachineProfileStatus(profile
- ? profile.name + ": " + (profile.maxRpm ? round(profile.maxRpm,0) + " RPM" : "RPM not configured") + " · " + (profile.maxFeedIpm ? round(profile.maxFeedIpm,2) + " IPM" : "feed not configured")
- : "No machine limits selected.", false);
+profileDraft = {toolbooks:profile ? profile.toolbooks.slice() : [], tools:profile ? profile.tools.map(t => ({...t})) : []};
+let message = "No machine limits selected.";
+if(profile){
+ message = profile.name + ": " + (profile.maxRpm ? round(profile.maxRpm,0) + " RPM" : "RPM not configured") + " · " + (profile.maxFeedIpm ? round(profile.maxFeedIpm,2) + " IPM" : "feed not configured");
+ // the website has no toolbooks, so it never mentions them (a profile's toolbooks are kept as saved)
+ if(shopToolList().length){
+  const inPlay = shopToolsInPlay();
+  if(inPlay.filtered) message += " · " + inPlay.tools.length + " shop tools" + (profile.toolbooks.length ? " from " + profile.toolbooks.join(", ") : "") + (profile.tools.length ? " (" + profile.tools.length + " extra)" : "");
+  const missing = inPlay.missingTools + inPlay.missingBooks;
+  if(inPlay.missingTools) message += ". " + inPlay.missingTools + (inPlay.missingTools === 1 ? " saved tool is" : " saved tools are") + " no longer in the toolbooks";
+  if(inPlay.missingBooks) message += ". " + inPlay.missingBooks + (inPlay.missingBooks === 1 ? " saved toolbook is" : " saved toolbooks are") + " no longer in the shop data";
+  if(missing) message += ", so " + (missing === 1 ? "it is" : "they are") + " skipped.";
+ }
+}
+renderMachineProfileStatus(message, false);
+renderProfileTools();
+refreshShopViews();
 }
 function newMachineProfile(){
 refreshMachineProfileSelect("");
@@ -107,7 +121,9 @@ try{
   id:selected ? selected.id : "machine-" + Date.now(),
   name:gid("machineProfileName").value,
   maxRpm:gid("machineMaxRpm").value,
-  maxFeedIpm:gid("machineMaxFeed").value
+  maxFeedIpm:gid("machineMaxFeed").value,
+  toolbooks:profileDraft.toolbooks,
+  tools:profileDraft.tools
  });
 }catch(error){
  renderMachineProfileStatus(error.message, true);
@@ -1539,28 +1555,131 @@ MBWorkflow.migrateLegacyKeys(window.localStorage, {
 // on the public site MBShopTools is missing and the card stays hidden.
 function shopToolList(){ return (globalThis.MBShopTools && Array.isArray(globalThis.MBShopTools.tools)) ? globalThis.MBShopTools.tools : []; }
 let shopToolPicked = null;
+const SHOP_KINDS = [["mill","Mill"],["drill","Drill"],["spot","Spot or center drill"],["chamfer","Chamfer"],["tap","Tap"],["threadmill","Thread mill"],["bore","Boring bar"],["ream","Reamer"],["groove","Groove cutter"],["probe","Probe"],["other","Other"]];
+const shopKindLabel = kind => (SHOP_KINDS.find(k => k[0] === kind) || [kind, kind])[1];
+let shopToolIndex = new Map();
+// the tools the active profile puts in play (every tool when no profile, or nothing ticked)
+function shopToolsInPlay(){
+const r = MBWorkflow.profileShopTools(activeMachineProfile(), shopToolList(), (globalThis.MBShopTools || {}).books);
+r.set = new Set(r.tools);
+return r;
+}
+const shopSort = (a, b) => (a.dia || 0) - (b.dia || 0) || a.id.localeCompare(b.id, undefined, {numeric:true});
+// "T100  2.0" CERATIZIT ...", with the book in front when more than one book is in play
+function shopToolLine(t, manyBooks){
+return (manyBooks ? t.book + "  " : "") + "T" + t.id + "  " + (t.dia && !/^[\d.]/.test(t.desc) ? round(t.dia, 4) + '" ' : "") + t.desc;
+}
 function initializeShopTools(){
 const data = globalThis.MBShopTools;
 if(!shopToolList().length) return;
+shopToolIndex = new Map(shopToolList().map((t, i) => [t, i]));
 gid("shopToolsCard").hidden = false;
 gid("shopToolsNote").textContent = shopToolList().length + " tools from the Hive toolbooks (built " + data.built + "). Sizes are read from the toolbook text, so check them against the description before using a result.";
-(data.books || []).forEach(b => gid("shopToolBook").add(new Option(b.name + " (" + b.count + ")", b.name)));
+renderProfileTools();
+refreshShopViews();
+}
+// everything that lists shop tools follows the active profile
+function refreshShopViews(){
+if(!shopToolList().length) return;
+const inPlay = shopToolsInPlay();
+const books = new Set(inPlay.tools.map(t => t.book));
+const select = gid("shopToolBook"), keep = select.value;
+select.innerHTML = '<option value="">All toolbooks</option>';
+((globalThis.MBShopTools || {}).books || []).filter(b => books.has(b.name))
+ .forEach(b => select.add(new Option(b.name + " (" + inPlay.tools.filter(t => t.book === b.name).length + ")", b.name)));
+select.value = books.has(keep) ? keep : "";
 searchShopTools();
+renderShopPickers();
+renderShopSizeTools();
+calcTapSearch();
 }
 function searchShopTools(){
+if(!shopToolList().length) return;
 const words = gid("shopToolSearch").value.toUpperCase().split(/\s+/).filter(Boolean);
-const book = gid("shopToolBook").value, kind = gid("shopToolKind").value;
-const hits = [];
-shopToolList().forEach((t, i) => {
-if((book && t.book !== book) || (kind && t.kind !== kind)) return;
+const book = gid("shopToolBook").value;
+const inPlay = shopToolsInPlay().tools;
+const many = new Set(inPlay.map(t => t.book)).size > 1 && !book;
+const groups = {};
+inPlay.forEach(t => {
+if(book && t.book !== book) return;
 const text = [t.desc, t.maker, "T" + t.id, ...t.lines].join(" ").toUpperCase();
-if(words.every(w => text.includes(w))) hits.push(i);
+if(words.every(w => text.includes(w))) (groups[t.kind] = groups[t.kind] || []).push(t);
 });
-const shown = hits.slice(0, 60).map(i => {
-const t = shopToolList()[i];
-return '<button class="ghost shop-tool" type="button" data-click="pickShopTool(' + i + ')"><b>' + escapeHtml(t.book + " T" + t.id) + "</b> " + escapeHtml(t.desc) + "</button>";
+const html = SHOP_KINDS.filter(k => groups[k[0]]).map(([kind, label]) => {
+const list = groups[kind].sort(shopSort);
+return '<details class="shop-kind"' + (words.length ? " open" : "") + "><summary>" + escapeHtml(label) + " (" + list.length + ")</summary>" +
+ list.slice(0, 200).map(t => '<button class="ghost shop-tool" type="button" data-click="pickShopTool(' + shopToolIndex.get(t) + ')">' + escapeHtml(shopToolLine(t, many)) + "</button>").join("") +
+ (list.length > 200 ? '<div class="note">' + (list.length - 200) + " more. Narrow the search.</div>" : "") + "</details>";
 }).join("");
-gid("shopToolResults").innerHTML = shown + (hits.length > 60 ? '<div class="note">' + (hits.length - 60) + " more. Narrow the search.</div>" : hits.length ? "" : '<div class="note">No tools match.</div>');
+gid("shopToolResults").innerHTML = html || '<div class="note">No tools match.</div>';
+}
+// A dropdown of shop tools in the section that uses them (<div class="shop-pick" id=... data-pick-kinds data-pick-target>).
+function renderShopPickers(){
+const inPlay = shopToolsInPlay().tools;
+const many = new Set(inPlay.map(t => t.book)).size > 1;
+document.querySelectorAll(".shop-pick").forEach(box => {
+ const kinds = box.dataset.pickKinds.split(","), target = box.dataset.pickTarget;
+ const tools = inPlay.filter(t => kinds.includes(t.kind) && (target === "tap" ? t.major : t.dia)).sort(shopSort);
+ box.hidden = !tools.length;
+ if(!tools.length){ box.innerHTML = ""; return; }
+ const option = t => '<option value="' + shopToolIndex.get(t) + '">' + escapeHtml(shopToolLine(t, many)) + "</option>";
+ const options = kinds.length > 1
+  ? kinds.filter(k => tools.some(t => t.kind === k)).map(k => '<optgroup label="' + escapeHtml(shopKindLabel(k)) + '">' + tools.filter(t => t.kind === k).map(option).join("") + "</optgroup>").join("")
+  : tools.map(option).join("");
+ box.innerHTML = '<label for="' + box.id + 'Select">Shop tool (' + tools.length + ")</label>" +
+  '<div class="shop-pick-row">' + (tools.length > 15 ? '<input type="search" id="' + box.id + 'Filter" placeholder="Type to filter" aria-label="Filter shop tools" data-input="filterShopPick(\'' + box.id + '\')"/>' : "") +
+  '<select id="' + box.id + 'Select" data-change="pickShopToolFor(\'' + box.id + '\')"><option value="">Choose a tool</option>' + options + "</select></div>";
+});
+}
+function filterShopPick(boxId){
+const words = gid(boxId + "Filter").value.toUpperCase().split(/\s+/).filter(Boolean);
+[...gid(boxId + "Select").options].forEach(o => { if(o.value) o.hidden = !words.every(w => o.textContent.toUpperCase().includes(w)); });
+}
+function pickShopToolFor(boxId){
+const t = shopToolList()[gid(boxId + "Select").value];
+if(!t) return;
+shopToolPicked = t;
+useShopTool(gid(boxId).dataset.pickTarget);
+}
+// Profile toolbooks and extra tools are edited here and kept by Save Profile, like the limits.
+let profileDraft = {toolbooks:[], tools:[]};
+function renderProfileTools(){
+if(!shopToolList().length) return;
+gid("profileToolsBox").hidden = false;
+gid("profileBooks").innerHTML = ((globalThis.MBShopTools || {}).books || []).map(b =>
+ '<label class="profile-book"><input type="checkbox" data-change="toggleProfileBook(\'' + escapeHtml(b.name) + '\')"' + (profileDraft.toolbooks.includes(b.name) ? " checked" : "") + "/> " + escapeHtml(b.name) + " (" + b.count + ")</label>").join("");
+const byKey = new Map(shopToolList().map(t => [t.book + "|" + t.id, t]));
+gid("profileExtraTools").innerHTML = profileDraft.tools.length ? profileDraft.tools.map((p, i) => {
+ const t = byKey.get(p.book + "|" + p.id);
+ return '<div class="profile-tool"><span>' + escapeHtml(p.book + " T" + p.id + "  " + (t ? t.desc : "(no longer in the toolbooks)")) + '</span><button class="ghost" type="button" data-click="removeProfileTool(' + i + ')">Remove</button></div>';
+}).join("") : '<div class="note">None. Pick a tool in Shop Tools, then Add to profile.</div>';
+}
+function profileDraftNote(message){ renderMachineProfileStatus(message + " Press Save Profile to keep it.", false); }
+function toggleProfileBook(name){
+const on = !profileDraft.toolbooks.includes(name);
+profileDraft.toolbooks = on ? profileDraft.toolbooks.concat(name) : profileDraft.toolbooks.filter(b => b !== name);
+profileDraftNote("Toolbook " + name + (on ? " ticked." : " unticked."));
+}
+function removeProfileTool(index){
+const [gone] = profileDraft.tools.splice(index, 1);
+renderProfileTools();
+if(gone) profileDraftNote(gone.book + " T" + gone.id + " removed.");
+}
+function addShopToolToProfile(){
+const t = shopToolPicked;
+if(!t) return;
+if(!profileDraft.tools.some(p => p.book === t.book && p.id === t.id)) profileDraft.tools.push({book:t.book, id:t.id});
+renderProfileTools();
+profileDraftNote(t.book + " T" + t.id + " added to the profile.");
+}
+// a new profile named like M391 ticks the 391-392 toolbook (only while nothing is ticked yet)
+function suggestProfileBooks(){
+if(!shopToolList().length || profileDraft.toolbooks.length || profileDraft.tools.length) return;
+const books = MBWorkflow.toolbooksForName(gid("machineProfileName").value, (globalThis.MBShopTools || {}).books);
+if(!books.length) return;
+profileDraft.toolbooks = books;
+renderProfileTools();
+profileDraftNote("Ticked toolbook " + books.join(", ") + " from the name.");
 }
 function pickShopTool(index){
 const t = shopToolList()[index];
@@ -1580,7 +1699,7 @@ const facts = [
 ];
 const uses = [];
 if(t.dia && ["drill","mill","ream","spot","bore"].includes(t.kind)) uses.push(["main","Milling and Drilling"]);
-if(t.dia && t.kind === "drill") uses.push(["spot","Spot drill (as the follow drill)"]);
+if(t.dia && (t.kind === "drill" || t.kind === "spot")) uses.push(["spot","Point and Spot Depth"]);
 if(t.dia && t.kind === "chamfer") uses.push(["chamfer","Chamfer"]);
 if(t.dia && t.kind === "threadmill") uses.push(["threadmill","Thread Mill"]);
 if(t.kind === "tap" && t.major) uses.push(["tap","Threads and Taps"]);
@@ -1588,7 +1707,8 @@ gid("shopToolDetail").hidden = false;
 gid("shopToolDetail").innerHTML = "<b>" + escapeHtml(t.desc) + "</b><br>" +
 facts.filter(f => f[1]).map(f => escapeHtml(f[0]) + ": " + escapeHtml(f[1])).join("<br>") +
 (t.lines.length ? "<br>" + t.lines.map(escapeHtml).join("<br>") : "") +
-(uses.length ? '<div class="workflow-actions">' + uses.map(u => '<button type="button" data-click="useShopTool(\'' + u[0] + '\')">Use in ' + escapeHtml(u[1]) + "</button>").join("") + "</div>" : "");
+'<div class="workflow-actions">' + uses.map(u => '<button type="button" data-click="useShopTool(\'' + u[0] + '\')">Use in ' + escapeHtml(u[1]) + "</button>").join("") +
+ '<button class="ghost" type="button" data-click="addShopToolToProfile()">Add to profile</button></div>';
 }
 function useShopTool(target){
 const t = shopToolPicked;
@@ -1610,7 +1730,12 @@ if(t.fpt && t.kind === "mill") set("fpt", t.fpt);
 calcMain();
 gid("toolDia").scrollIntoView({block:"center"});
 } else if(target === "spot"){
-set("followDrillDia", t.dia); calcSpotDrill();
+set("followDrillDia", t.dia);
+// the tool's angle only when its description states one the list has (never guessed)
+const deg = (/(\d{2,3})\s*(°|DEG)/.exec(t.desc.toUpperCase()) || [])[1];
+const spotType = (t.kind === "drill" ? "drill" : /CENT|C-DR|CNTR/.test(t.desc.toUpperCase()) ? "center" : "spot") + deg;
+if(deg && [...gid("spotToolType").options].some(o => o.value === spotType)){ set("spotToolType", spotType); applySpotToolType(); }
+calcSpotDrill();
 gid("followDrillDia").scrollIntoView({block:"center"});
 } else if(target === "chamfer"){
 set("chamferToolMaxDia", t.dia);
@@ -1664,8 +1789,9 @@ function renderShopThreadTools(type, index, range){
 const box = gid("tapShopTools");
 const list = shopToolList();
 if(!box || !list.length) return;
-const taps = [];
+const taps = [], inPlay = shopToolsInPlay().set;
 list.forEach((t, i) => {
+ if(!inPlay.has(t)) return;
  const m = shopThreadMatch(t);
  if(index === "custom" ? !m && t.major === shopCustomThread.major && t.pitch === shopCustomThread.pitch : m && m.type === type && m.index === index) taps.push(i);
 });
@@ -1676,7 +1802,7 @@ let html = "<b>Shop taps for this thread</b>" + (taps.length
 if(range){
  const sizes = new Map();
  list.forEach((t, i) => {
-  if(t.kind !== "drill" || !t.dia || t.dia < range.minDec - 0.00001 || t.dia > range.maxDec + 0.00001) return;
+  if(!inPlay.has(t) || t.kind !== "drill" || !t.dia || t.dia < range.minDec - 0.00001 || t.dia > range.maxDec + 0.00001) return;
   const key = round(t.dia, 4);
   sizes.set(key, (sizes.get(key) || []).concat(i));
  });
@@ -1696,8 +1822,8 @@ const list = shopToolList();
 if(!box || !list.length) return;
 const d = toolDiaInches();
 const kind = gid("calcType").value === "drill" ? "drill" : "mill";
-const hits = [];
-if(d > 0) list.forEach((t, i) => { if(t.kind === kind && t.dia && Math.abs(t.dia - d) < 0.0006) hits.push(i); });
+const hits = [], inPlay = shopToolsInPlay().set;
+if(d > 0) list.forEach((t, i) => { if(inPlay.has(t) && t.kind === kind && t.dia && Math.abs(t.dia - d) < 0.0006) hits.push(i); });
 hits.sort((a, b) => (list[b].sfm ? 1 : 0) - (list[a].sfm ? 1 : 0));
 box.hidden = !hits.length;
 box.innerHTML = hits.length ? "<b>Shop " + kind + "s at this size</b>" +
