@@ -243,3 +243,36 @@ test('form-tap drills are larger than cutting-tap drills and match published for
   }
 });
 
+
+test('shop mill calculation type comes from the toolbook description', () => {
+  assert.deepEqual(calc.shopMillCalcType('3.0" CERATIZIT 45 DEG ROUGH FACE MILL'), { type: 'face45', sure: true });
+  assert.deepEqual(calc.shopMillCalcType('1.25" ISCAR 90 DEG SHOULDER MILL'), { type: 'shoulder90', sure: true });
+  assert.deepEqual(calc.shopMillCalcType('.500 4FL CRBD END MILL'), { type: 'endmill', sure: true });
+  assert.deepEqual(calc.shopMillCalcType('1/2 .500 CRBD ED-M FIN OD ON PD BCKHD'), { type: 'endmill', sure: true });
+  // a face mill without a lead angle, or a turbo mill: keep Endmill but say it was a guess
+  assert.deepEqual(calc.shopMillCalcType('3.0" EXT DGC ROUGH FACE MILL - SS'), { type: 'endmill', sure: false });
+  assert.deepEqual(calc.shopMillCalcType('2.0" POWER TURBO MILL'), { type: 'endmill', sure: false });
+});
+
+test('T102 3.0" face mill at its toolbook numbers: 955 RPM, 76.4 IPM, equal to the toolbook feed', () => {
+  // 391-392 T102: 750 SFM / .010 FPT / 8 inserts, run in 45 degree face mode (no chip thinning)
+  const { rpm } = calc.resolveSurfaceSpeed({ basis: 'sfm', sfm: 750, diameterInches: 3 });
+  closeTo(rpm, 954.93, 0.01);
+  const programmed = rpm * 8 * 0.01;
+  closeTo(programmed, 76.39, 0.01);
+  const book = calc.toolbookFeed({ rpm, teeth: 8, fpt: 0.01, programmedIpm: programmed });
+  closeTo(book.ipm, programmed);
+  assert.equal(book.over, false);
+  // the 1.2.1 result: Endmill mode with a left-over .078 stepover tripled it
+  const thinned = programmed * calc.radialChipThinningFactor(0.078, 3);
+  assert.ok(thinned > 239 && thinned < 241);
+  assert.equal(calc.toolbookFeed({ rpm, teeth: 8, fpt: 0.01, programmedIpm: thinned }).over, true);
+});
+
+test('a shop endmill run at 25% stepover is flagged above its toolbook feed', () => {
+  const rpm = 3000, teeth = 4, fpt = 0.003;
+  const thinned = rpm * teeth * fpt * calc.radialChipThinningFactor(0.125, 0.5);
+  assert.equal(calc.toolbookFeed({ rpm, teeth, fpt, programmedIpm: thinned }).over, true);
+  // 50% stepover, the shop-fill default, has no chip thinning
+  assert.equal(calc.radialChipThinningFactor(0.25, 0.5), 1);
+});

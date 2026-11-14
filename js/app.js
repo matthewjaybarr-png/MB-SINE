@@ -388,31 +388,35 @@ gid("millingBox").style.display = isDrill ? "none" : "";
 gid("drillToolTypeBox").style.display = isDrill ? "" : "none";
 gid("stepoverWrap").style.display = isEndmill ? "" : "none";
 
+// Fields hidden by the new type keep their values. Visible ones are filled only when blank or still
+// holding this function's own earlier default, so a typed or shop-tool FPT, flute count or stepover is never replaced.
 if(isDrill){
- gid("flutes").value = "2";
- gid("fpt").value = "";
- gid("stepover").value = "";
- gid("ipr").value = gid("ipr").value || "0.004";
+ fillCalcTypeDefault("ipr", "0.004");
 }
 if(isEndmill){
  gid("fptLabel").textContent = "FPT or IPT";
- if(!gid("flutes").value || Number(gid("flutes").value) > 8) gid("flutes").value = "4";
- if(!gid("fpt").value || Number(gid("fpt").value) > 0.005) gid("fpt").value = "0.0025";
- if(!gid("stepover").value) gid("stepover").value = round(toolDiaInches() * 0.25,4);
+ fillCalcTypeDefault("flutes", "4");
+ fillCalcTypeDefault("fpt", "0.0025");
+ if(toolDiaInches() > 0) fillCalcTypeDefault("stepover", round(toolDiaInches() * 0.25,4));
 }
 if(isFace45){
  gid("fptLabel").textContent = "FPT";
- if(!gid("flutes").value || Number(gid("flutes").value) < 3 || Number(gid("flutes").value) > 12) gid("flutes").value = "6";
- if(!gid("fpt").value || Number(gid("fpt").value) > 0.004) gid("fpt").value = "0.0025";
- gid("stepover").value = "";
+ fillCalcTypeDefault("flutes", "6");
+ fillCalcTypeDefault("fpt", "0.0025");
 }
 if(isShoulder90){
  gid("fptLabel").textContent = "FPT";
- if(!gid("flutes").value || Number(gid("flutes").value) > 8) gid("flutes").value = "4";
- if(!gid("fpt").value || Number(gid("fpt").value) > 0.004) gid("fpt").value = "0.0025";
- gid("stepover").value = "";
+ fillCalcTypeDefault("flutes", "4");
+ fillCalcTypeDefault("fpt", "0.0025");
 }
 updatePresetPreview();
+}
+let calcTypeDefaults = {};
+function fillCalcTypeDefault(id, value){
+const el = gid(id);
+if(el.value !== "" && el.value !== calcTypeDefaults[id] && el.value !== el.defaultValue) return;
+el.value = value;
+calcTypeDefaults[id] = el.value;
 }
 
 function updatePresetPreview(){
@@ -573,6 +577,17 @@ else{
  out += "90 degree shoulder cutters are best when wall straightness matters.";
 }
 
+// Card filled from a shop tool and still at that tool's diameter: show the toolbook's own feed beside the result.
+const fill = shopMainFill;
+if(fill && Math.abs(d - fill.tool.dia) < 1e-6 && type !== "drill"){
+ if(!fill.sure && type === "endmill") out += "<br>Calculation type is Endmill because the toolbook description does not say face mill or shoulder mill. Change it if this tool is one.";
+ const teeth = fill.tool.teeth || flutes;
+ if(fill.tool.fpt && teeth && feedIpm){
+  const book = MBCalc.toolbookFeed({rpm, teeth, fpt:fill.tool.fpt, programmedIpm:feedIpm});
+  out += "<br>Toolbook feed (" + escapeHtml(fill.tool.book + " T" + fill.tool.id) + "): " + round(book.ipm,1) + " IPM";
+  if(book.over) warnings.push("Programmed feed " + round(feedIpm,1) + " IPM is " + round((feedIpm / book.ipm - 1) * 100,0) + "% above the toolbook feed (" + round(book.ipm,1) + " IPM). The toolbook FPT is already the shop's programmed FPT.");
+ }
+}
 if(warnings.length){
  out = "Warning: " + warnings.join(" ") + "<br><br>" + out;
 }
@@ -634,6 +649,8 @@ gid("ipr").value = "";
 gid("fpt").value = "";
 gid("stepover").value = "";
 gid("mainResult").innerHTML = "";
+shopMainFill = null;
+calcTypeDefaults = {};
 toggleCalcType();
 updateSpeedBasisUI("main");
 updatePresetPreview();
@@ -1560,9 +1577,13 @@ const t = shopToolPicked;
 if(!t || !(t.dia || (target === "tap" && t.major))) return;
 const set = (id, value) => { gid(id).value = value; };
 if(target === "main"){
-if(!(t.kind === "mill" && ["endmill","face45","shoulder90"].includes(gid("calcType").value))) set("calcType", t.kind === "mill" ? "endmill" : "drill");
+const pick = t.kind === "mill" ? MBCalc.shopMillCalcType(t.desc) : {type:"drill", sure:true};
+set("calcType", pick.type);
 set("units", "inch");
 set("toolDia", t.dia);
+// 50% stepover has no chip thinning, so the result starts equal to the toolbook feed; never keep a stepover made for another diameter
+if(pick.type === "endmill") set("stepover", round(t.dia * 0.5, 4));
+shopMainFill = {tool:t, sure:pick.sure};
 toggleCalcType();
 if(t.teeth) set("flutes", t.teeth);
 // the toolbook's own SFM; FPT only on mills, since on a drill the toolbook doesn't say per flute or per rev
@@ -1605,7 +1626,7 @@ else applyTapPreset();
 gid("threadSelect").scrollIntoView({block:"center"});
 }
 }
-let shopTapSfm = null, shopCustomThread = null;
+let shopTapSfm = null, shopCustomThread = null, shopMainFill = null;
 // "1 1/4" -> 1.25
 const sizeValue = s => String(s).split(" ").reduce((a, part) => a + (part.includes("/") ? part.split("/")[0] / part.split("/")[1] : +part), 0);
 /** A shop tap's place in the thread chart: {type, index}, or null when the chart doesn't list it. */
