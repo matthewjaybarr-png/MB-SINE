@@ -498,7 +498,7 @@ font-size:13px;font-weight:inherit;padding:4px 9px;}
 :root[data-host="forge"] .quick button{border-radius:4px;}
 :root[data-host="forge"] :focus-visible{outline:2px solid var(--f-dykem);outline-offset:1px;}
 /* Forge ships the files; there is no online/offline state to report */
-:root[data-host="forge"] #connectionStatus{display:none;}
+:root[data-host="forge"] #connectionStatus, :root[data-host="app"] #connectionStatus{display:none;}
 @media (max-width:1100px){
 :root[data-host="forge"] .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";}
 :root[data-host="forge"] .nav{top:42px;}
@@ -511,3 +511,4 @@ font-size:13px;font-weight:inherit;padding:4px 9px;}
 /* text that names where Sine runs: data-only="web" on the website, data-only="forge" in Forge */
 :root[data-host="forge"] [data-only="web"],
 :root:not([data-host="forge"]) [data-only="forge"]{display:none;}
+.topbar .version{font-size:12px;color:var(--muted);letter-spacing:.04em}

@@ -3,6 +3,7 @@
  *
  * Loaded in <head>, before the page is drawn, so the Forge look applies without a flash.
  *   Standalone (GitHub Pages, installed web app, single-file build): nothing changes.
+ *   In the Windows app (Tauri): data-host="app"; app.js skips the service worker and opens outside links in the browser.
  *   In MB Forge: <html data-host="forge"> (set by tools/build-forge.js, or ?host=forge when testing).
  *     - styles.css switches to Forge's theme, read from the Forge page (followForgeTheme)
  *     - app.js skips the service worker (Forge ships the files itself)
@@ -15,11 +16,13 @@
   "use strict";
 
   const VERSION = "1.2.1";
-  const HOSTS = new Set(["web", "forge"]);
+  const HOSTS = new Set(["web", "forge", "app"]);
 
-  function detectHost(doc, search) {
+  // "app" is the Windows app: its page is http://tauri.localhost/ (tauri://localhost elsewhere).
+  function detectHost(doc, search, loc) {
     const preset = doc.documentElement.getAttribute("data-host");
     if (HOSTS.has(preset)) return preset;
+    if (loc && (loc.hostname === "tauri.localhost" || loc.protocol === "tauri:")) return "app";
     let requested = null;
     try { requested = new URLSearchParams(search || "").get("host"); } catch (_) { /* old browser */ }
     return HOSTS.has(requested) ? requested : "web";
@@ -94,7 +97,7 @@
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 
   if (typeof document !== "undefined" && root.location) {
-    const host = detectHost(document, root.location.search);
+    const host = detectHost(document, root.location.search, root.location);
     document.documentElement.setAttribute("data-host", host);
     root.MBSine = { version: VERSION, host };
     if (host === "forge") {

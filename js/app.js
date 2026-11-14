@@ -248,7 +248,9 @@ try{
 function downloadLatestResult(){
 const note = latestResultNote();
 if(!note) return;
-const stamp = latestShopResult.created.toISOString().replace(/[:.]/g,"-");
+// local time, so a note made at 6:19 AM is named ...2026-11-13_06-19-41.txt
+const c = latestShopResult.created, two = n => String(n).padStart(2, "0");
+const stamp = c.getFullYear() + "-" + two(c.getMonth() + 1) + "-" + two(c.getDate()) + "_" + two(c.getHours()) + "-" + two(c.getMinutes()) + "-" + two(c.getSeconds());
 const filename = "mb-sine-" + latestShopResult.label.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") + "-" + stamp + ".txt";
 const url = URL.createObjectURL(new Blob([note], {type:"text/plain;charset=utf-8"}));
 const link = document.createElement("a");
@@ -271,14 +273,30 @@ function initializeOfflineSupport(){
 updateConnectionStatus();
 window.addEventListener("online", updateConnectionStatus);
 window.addEventListener("offline", updateConnectionStatus);
-// Inside MB Forge the app ships the files itself; a service worker there would only go stale.
-if(document.documentElement.dataset.host === "forge") return;
+// Inside MB Forge and the Windows app the files ship with the program; a service worker there would only
+// go stale (and Tauri answers the missing script with index.html, so registering fails).
+const host = document.documentElement.dataset.host;
+if(host === "app") openOutsideLinksInBrowser();
+if(host === "forge" || host === "app") return;
 if("serviceWorker" in navigator && /^https?:$/.test(location.protocol)){
  navigator.serviceWorker.register("./service-worker.js").catch(() => {
   gid("connectionStatus").textContent = "Offline setup unavailable";
   gid("connectionStatus").classList.remove("online", "offline");
  });
 }
+}
+// The app's window can't open target=_blank links, so hand them to the default browser
+// (Tauri opener plugin; src-tauri/capabilities/default.json allows only the reference sites).
+function openOutsideLinksInBrowser(){
+document.addEventListener("click", event => {
+ const link = event.target.closest && event.target.closest('a[href^="http"]');
+ if(!link) return;
+ event.preventDefault();
+ const tauri = window.__TAURI_INTERNALS__;
+ const showAddress = () => window.prompt("Copy this address into your browser:", link.href);
+ if(!tauri) return showAddress();
+ tauri.invoke("plugin:opener|open_url", {url:link.href}).catch(showAddress);
+});
 }
 function showCalculationError(resultId, error){
 gid(resultId).textContent = error instanceof Error ? error.message : String(error);
@@ -1731,3 +1749,4 @@ document.querySelectorAll(".result").forEach(result => {
 });
 enableResultTracking();
 initializeOfflineSupport();
+gid("sineVersion").textContent = globalThis.MBSine ? "Sine " + MBSine.version : "";
