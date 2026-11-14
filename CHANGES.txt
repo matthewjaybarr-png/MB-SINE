@@ -1,5 +1,33 @@
 What changed in each MB Sine version (newest first).
 
+== 1.3.0
+Machine profiles that know their toolbooks, tool dropdowns, Suite look
+- Machine profiles: tick the toolbooks a machine runs and add single
+  tools (Add to profile from Shop Tools, Remove to take one off). Every
+  shop tool list then shows only that machine's tools; nothing ticked
+  shows all of them. A profile named like M391 ticks 391-392 for you.
+  Older profiles load as before. A saved tool no longer in the
+  toolbooks is skipped, with one line saying so.
+- Milling and Drilling, Point/Spot Depth, Chamfer/Countersink, Tap
+  Speeds and Feeds, Tap Drill Check and Thread Mill Helper each have a
+  Shop tool dropdown (T100  2.0" DESC, smallest first), with a filter box
+  on long lists. Choosing a tool does what its Use button does.
+- Shop Tools lists tools in closed groups by kind, with counts.
+- Tool kinds re-sorted: a new Groove kind; Centerdex tools are Spot;
+  boring bars, K tools and Criterion heads are Bore; thread mills,
+  surfers, fly cutters and high-feed mills found their kinds. 36 tools
+  are still Other (brushes, flush tubes, engraving, step tools and the
+  like).
+- The 487-488 toolbook is named 387-388, its real machines. Profiles
+  saved with 487-488 read as 387-388.
+- Milling: picking a shop tool picks its milling type, the toolbook feed
+  is shown, and a typed FPT is never reset (fixes the 1.2.1 face-mill
+  overfeed on 391-392 T102).
+- Windows app: Neon Ridge look by default, with Orbit's 27 themes in a
+  picker and a matching window frame; JetBrains Mono NL bundled. No
+  service worker, outside links open in the browser, the version is
+  shown, and note names use local time. The website keeps its own look.
+
 == 1.2.1
 Shop tools the shop actually runs, beside the calculators
 - Threads and Taps: the shop's taps for the selected thread, from the

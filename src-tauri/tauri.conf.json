@@ -38,6 +38,7 @@
         "installMode": "currentUser",
         "displayLanguageSelector": false,
         "installerIcon": "icons/icon.ico",
+        "sidebarImage": "icons/installer-side.bmp",
         "template": "windows/installer.nsi",
         "uninstallerIcon": "icons/icon.ico"
       },

@@ -1,6 +1,6 @@
 [package]
 name = "mbsine"
-version = "1.2.1"
+version = "1.3.0"
 description = "MB Sine - shop-floor machining calculator (shown as Sine)"
 authors = ["Matt Barr"]
 edition = "2021"

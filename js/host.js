@@ -16,7 +16,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "1.2.1";
+  const VERSION = "1.3.0";
   const HOSTS = new Set(["web", "forge", "app"]);
 
   // "app" is the Windows app: its page is http://tauri.localhost/ (tauri://localhost elsewhere).

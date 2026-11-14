@@ -132,6 +132,10 @@ function main() {
   for (const [file, s] of Object.entries({ '32x32.png': 32, '64x64.png': 64, '128x128.png': 128, '128x128@2x.png': 256, 'icon.png': 256 }))
     fs.writeFileSync(at(file), writePng(by[s]));
   for (const [file, s] of Object.entries(TILES)) fs.writeFileSync(at(file), writePng(cut(big, s, true)));
-  console.log(`icon.ico ${ICO_SIZES.join(', ')}, PNGs and ${Object.keys(TILES).length} tiles written`);
+  // The installer's Welcome/Finish strip, as Datum's: the 128 px icon centred on the icon's own navy, 24-bit BMP3.
+  const side = spawnSync('magick', ['-size', '164x314', 'xc:rgb(0,18,53)', at('128x128.png'), '-gravity', 'center', '-composite',
+    '-alpha', 'off', '-type', 'TrueColor', '-strip', 'BMP3:' + at('installer-side.bmp')]);
+  if (side.status) throw new Error('magick: ' + side.stderr);
+  console.log(`icon.ico ${ICO_SIZES.join(', ')}, PNGs, ${Object.keys(TILES).length} tiles and installer-side.bmp written`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync(process.argv[1])).href) main();
