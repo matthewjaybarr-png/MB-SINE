@@ -404,7 +404,7 @@ font-weight:800;font-style:normal;font-display:swap;}
 font-weight:600;font-style:normal;font-display:swap;}
 @font-face{font-family:"MB Mono";src:url(../../../fonts/JetBrainsMonoNerdFontMono-ExtraBold.woff2) format("woff2");
 font-weight:800;font-style:normal;font-display:swap;}
-:root[data-host="forge"]{
+:root:is([data-host="forge"],[data-host="app"]){
 color-scheme:dark;
 --f-chrome:var(--forge-chrome,#111936);
 --f-panel:var(--forge-panel,#151e40);
@@ -432,7 +432,7 @@ color-scheme:dark;
 --title-glow:transparent;
 --topbar-bg:var(--f-panel);
 --accent-line:var(--f-dykem);
---on-accent:var(--f-bright);
+--on-accent:var(--forge-on-accent,var(--f-bright));
 --field-bg:var(--f-chrome);
 --field-text:var(--f-text);
 --field-off-bg:var(--f-raised);
@@ -455,60 +455,64 @@ color-scheme:dark;
 scrollbar-color:var(--f-rule) var(--f-chrome);
 }
 /* Forge's panel sizes: 13px text, 12px labels and notes, 14px headings */
-:root[data-host="forge"] body{font-weight:var(--forge-ui-weight,600);font-size:13px;line-height:1.4;}
-:root[data-host="forge"] .topbar{padding:6px 10px;box-shadow:none;}
-:root[data-host="forge"] .topbar h1{font-size:15px;letter-spacing:.2em;margin:0;font-weight:800;}
+:root:is([data-host="forge"],[data-host="app"]) body{font-weight:var(--forge-ui-weight,600);font-size:13px;line-height:1.4;}
+:root:is([data-host="forge"],[data-host="app"]) .topbar{padding:6px 10px;box-shadow:none;}
+:root:is([data-host="forge"],[data-host="app"]) .topbar h1{font-size:15px;letter-spacing:.2em;margin:0;font-weight:800;}
 /* a jump to a section stops just below the top bar */
-html[data-host="forge"]{scroll-padding-top:calc(var(--topbar-h,42px) + 6px);}
-:root[data-host="forge"] .sectionhead{scroll-margin-top:0;}
-:root[data-host="forge"] .workbench{grid-template-columns:148px minmax(0,1fr) 230px;gap:8px;padding:8px 10px 16px;}
-:root[data-host="forge"] .nav{justify-content:flex-start;gap:3px;top:42px;}
-:root[data-host="forge"] .nav a{background:transparent;border-color:transparent;border-radius:4px;color:var(--f-text);
+html:is([data-host="forge"],[data-host="app"]){scroll-padding-top:calc(var(--topbar-h,42px) + 6px);}
+:root:is([data-host="forge"],[data-host="app"]) .sectionhead{scroll-margin-top:0;}
+:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:148px minmax(0,1fr) 230px;gap:8px;padding:8px 10px 16px;}
+:root:is([data-host="forge"],[data-host="app"]) .nav{justify-content:flex-start;gap:3px;top:42px;}
+:root:is([data-host="forge"],[data-host="app"]) .nav a{background:transparent;border-color:transparent;border-radius:4px;color:var(--f-text);
 font-size:13px;font-weight:inherit;padding:4px 9px;}
-:root[data-host="forge"] .nav a:hover{background:var(--f-raised);border-color:var(--f-rule);}
-:root[data-host="forge"] .result-rail{top:42px;}
-:root[data-host="forge"] .workflow-output{border-radius:6px;}
-:root[data-host="forge"] .latest-result-detail{border-radius:4px;}
-:root[data-host="forge"] .wrap{padding:8px;}
+:root:is([data-host="forge"],[data-host="app"]) .nav a:hover{background:var(--f-raised);border-color:var(--f-rule);}
+:root:is([data-host="forge"],[data-host="app"]) .result-rail{top:42px;}
+:root:is([data-host="forge"],[data-host="app"]) .workflow-output{border-radius:6px;}
+:root:is([data-host="forge"],[data-host="app"]) .latest-result-detail{border-radius:4px;}
+:root:is([data-host="forge"],[data-host="app"]) .wrap{padding:8px;}
 /* a table too wide for a narrow panel scrolls inside its card, never the whole page */
-:root[data-host="forge"] .card{border-radius:6px;padding:10px;min-width:0;overflow-x:auto;}
-:root[data-host="forge"] .card h2{font-size:14px;font-weight:800;}
-:root[data-host="forge"] .card h3{font-size:13px;font-weight:800;}
-:root[data-host="forge"] .sectionhead{border-radius:4px;border-left-width:4px;border-left-color:var(--f-dykem);font-size:14px;}
-:root[data-host="forge"] label,
-:root[data-host="forge"] .note{font-size:12px;}
-:root[data-host="forge"] .note{color:var(--f-dim);}
-:root[data-host="forge"] input,
-:root[data-host="forge"] select,
-:root[data-host="forge"] button,
-:root[data-host="forge"] textarea,
-:root[data-host="forge"] .result,
-:root[data-host="forge"] .scroll{border-radius:4px;}
-:root[data-host="forge"] input,
-:root[data-host="forge"] select,
-:root[data-host="forge"] button,
-:root[data-host="forge"] textarea{font-family:inherit;font-weight:inherit;font-size:13px;min-width:0;}
-:root[data-host="forge"] button:not(:disabled):hover{border-color:var(--f-dykem);}
-:root[data-host="forge"] button:not(.secondary):not(.ghost):not(.danger):not(:disabled):hover{background:var(--f-dykem-hover);}
-:root[data-host="forge"] button.secondary:not(:disabled):hover,
-:root[data-host="forge"] button.ghost:not(:disabled):hover{background:var(--f-raised);}
-:root[data-host="forge"] button.secondary,
-:root[data-host="forge"] button.ghost{border-color:var(--f-rule);}
-:root[data-host="forge"] button.danger:not(:disabled):hover{border-color:var(--f-red);}
-:root[data-host="forge"] .quick button{border-radius:4px;}
-:root[data-host="forge"] :focus-visible{outline:2px solid var(--f-dykem);outline-offset:1px;}
+:root:is([data-host="forge"],[data-host="app"]) .card{border-radius:6px;padding:10px;min-width:0;overflow-x:auto;}
+:root:is([data-host="forge"],[data-host="app"]) .card h2{font-size:14px;font-weight:800;}
+:root:is([data-host="forge"],[data-host="app"]) .card h3{font-size:13px;font-weight:800;}
+:root:is([data-host="forge"],[data-host="app"]) .sectionhead{border-radius:4px;border-left-width:4px;border-left-color:var(--f-dykem);font-size:14px;}
+:root:is([data-host="forge"],[data-host="app"]) label,
+:root:is([data-host="forge"],[data-host="app"]) .note{font-size:12px;}
+:root:is([data-host="forge"],[data-host="app"]) .note{color:var(--f-dim);}
+:root:is([data-host="forge"],[data-host="app"]) input,
+:root:is([data-host="forge"],[data-host="app"]) select,
+:root:is([data-host="forge"],[data-host="app"]) button,
+:root:is([data-host="forge"],[data-host="app"]) textarea,
+:root:is([data-host="forge"],[data-host="app"]) .result,
+:root:is([data-host="forge"],[data-host="app"]) .scroll{border-radius:4px;}
+:root:is([data-host="forge"],[data-host="app"]) input,
+:root:is([data-host="forge"],[data-host="app"]) select,
+:root:is([data-host="forge"],[data-host="app"]) button,
+:root:is([data-host="forge"],[data-host="app"]) textarea{font-family:inherit;font-weight:inherit;font-size:13px;min-width:0;}
+:root:is([data-host="forge"],[data-host="app"]) button:not(:disabled):hover{border-color:var(--f-dykem);}
+:root:is([data-host="forge"],[data-host="app"]) button:not(.secondary):not(.ghost):not(.danger):not(:disabled):hover{background:var(--f-dykem-hover);}
+:root:is([data-host="forge"],[data-host="app"]) button.secondary:not(:disabled):hover,
+:root:is([data-host="forge"],[data-host="app"]) button.ghost:not(:disabled):hover{background:var(--f-raised);}
+:root:is([data-host="forge"],[data-host="app"]) button.secondary,
+:root:is([data-host="forge"],[data-host="app"]) button.ghost{border-color:var(--f-rule);}
+:root:is([data-host="forge"],[data-host="app"]) button.danger:not(:disabled):hover{border-color:var(--f-red);}
+:root:is([data-host="forge"],[data-host="app"]) .quick button{border-radius:4px;}
+:root:is([data-host="forge"],[data-host="app"]) :focus-visible{outline:2px solid var(--f-dykem);outline-offset:1px;}
 /* Forge ships the files; there is no online/offline state to report */
-:root[data-host="forge"] #connectionStatus, :root[data-host="app"] #connectionStatus{display:none;}
+:root:is([data-host="forge"],[data-host="app"]) #connectionStatus{display:none;}
 @media (max-width:1100px){
-:root[data-host="forge"] .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";}
-:root[data-host="forge"] .nav{top:42px;}
-:root[data-host="forge"] .result-rail{position:static;top:auto;}
+:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";}
+:root:is([data-host="forge"],[data-host="app"]) .nav{top:42px;}
+:root:is([data-host="forge"],[data-host="app"]) .result-rail{position:static;top:auto;}
 }
 
 /* Shop Tools (installer and Forge builds only) */
 .shop-tool-list{display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;margin:10px 0;}
 .shop-tool-list button.shop-tool{text-align:left;width:100%;white-space:normal;}
 /* text that names where Sine runs: data-only="web" on the website, data-only="forge" in Forge */
-:root[data-host="forge"] [data-only="web"],
+:root:is([data-host="forge"],[data-host="app"]) [data-only="web"],
+:root:not([data-host="app"]) [data-only="app"],
 :root:not([data-host="forge"]) [data-only="forge"]{display:none;}
 .topbar .version{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.topbar .theme-pick{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.topbar .theme-pick select{width:auto;padding:3px 6px;font-size:12px}
+:root[data-host="app"] .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}

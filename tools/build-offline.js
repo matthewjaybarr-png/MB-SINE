@@ -9,6 +9,7 @@
  *   - inlines css/styles.css and js/host.js, data.js, core.js, workflow.js, app.js, actions.js (same load order as index.html)
  *   - removes the Google Fonts link and the web-app manifest link (neither works from a USB drive)
  *   - swaps the favicon for an inline data URI
+ *   - copies fonts/ (JetBrains Mono NL + OFL.txt) beside the page; without it the page falls back to Consolas
  *   - leaves every calculation untouched; the result runs by double-clicking it (file://)
  *
  * No dependencies. Node 18+.
@@ -40,11 +41,19 @@ const svg = read("icons/mb-sine.svg").trim();
 const favicon = "data:image/svg+xml," + encodeURIComponent(svg);
 replaceOnce(/<link[^>]*rel="icon"[^>]*\/?>/i, `<link href="${favicon}" rel="icon" type="image/svg+xml"/>`, "favicon link");
 
+// The font (JetBrains Mono NL, OFL) goes in a fonts folder beside the page; styles.css names
+// Forge's copy (../../../fonts), so the path is pointed at the local folder here.
+const css = read("css/styles.css");
+if (!css.includes("url(../../../fonts/")) throw new Error("Expected @font-face lines not found in css/styles.css");
 replaceOnce(
   /<link[^>]*href="\.\/css\/styles\.css"[^>]*\/?>/i,
-  "<style>\n" + safeStyle(read("css/styles.css")) + "\n</style>",
+  "<style>\n" + safeStyle(css.replaceAll("url(../../../fonts/", "url(fonts/")) + "\n</style>",
   "stylesheet link"
 );
+fs.mkdirSync(path.join(path.dirname(out), "fonts"), { recursive: true });
+for (const f of fs.readdirSync(path.join(root, "fonts"))) {
+  fs.copyFileSync(path.join(root, "fonts", f), path.join(path.dirname(out), "fonts", f));
+}
 
 // Scripts: same order the page contract test enforces (host.js sits in <head>).
 // The shop's own tool list (gitignored, from tools/import-hive.mjs) goes in before app.js when it exists.
