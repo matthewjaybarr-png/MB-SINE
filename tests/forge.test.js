@@ -95,7 +95,24 @@ test('every token styles.css reads from Forge is one host.js copies', () => {
   const css = read('css/styles.css');
   const used = new Set([...css.matchAll(/var\(--forge-([a-z-]+)/g)].map(m => m[1]));
   assert.ok(used.size > 10);
-  for (const name of used) assert.ok(host.FORGE_TOKENS.includes(name), name);
+  // on-accent is the Windows app's own (themeTokens); Forge has no such token, so styles.css falls back
+  for (const name of used) assert.ok(host.FORGE_TOKENS.includes(name) || name === 'on-accent', name);
+});
+
+test('the Windows app themes: Orbit\'s 27, Neon Ridge is Forge\'s own palette, every theme reads', () => {
+  assert.equal(host.THEMES.length, 27);
+  assert.deepEqual(host.THEMES.find(t => t[0] === 'neon-ridge').slice(2),
+    ['#0a1028', '#1a2550', '#d7dcf5', '#8089bd', '#38bdfa', '#2a3a78', true]);
+  assert.deepEqual(host.themeTokens(host.THEMES.find(t => t[0] === 'neon-ridge')), {});
+  for (const theme of host.THEMES.filter(t => t[0] !== 'neon-ridge')) {
+    const t = host.themeTokens(theme);
+    for (const ground of [t.chrome, t.panel, t.raised]) {
+      for (const name of ['text', 'dim', 'amber', 'red', 'green']) {
+        assert.ok(host.contrast(t[name], ground) >= 4.5, `${theme[0]} ${name} on ${ground}`);
+      }
+    }
+    assert.ok(host.contrast(t['on-accent'], t['dykem-deep']) >= 4.5, `${theme[0]} button text`);
+  }
 });
 
 test('the Forge build passes MB Forge\'s Content Security Policy and ships every asset', () => {

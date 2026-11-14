@@ -15,6 +15,8 @@
 <body>
 <header class="topbar">
 <h1>SINE</h1>
+<span class="version" id="sineVersion"></span>
+<label class="theme-pick" data-only="app">Theme <select id="themePicker" aria-label="Theme"></select></label>
 </header>
 <div class="workbench">
 <nav class="nav" aria-label="Calculator categories">
@@ -26,7 +28,7 @@
 <div class="workflow-heading">
 <div>
 <h2>Machine Limits and Shop Output</h2>
-<div class="note"><span data-only="web">Profiles stay in this browser.</span><span data-only="forge">Profiles are saved by Forge on this PC, for your Windows sign-in.</span> A zero limit means that limit is not configured; the calculator warns but never silently clamps a result.</div>
+<div class="note"><span data-only="web">Profiles stay in this browser.</span><span data-only="forge">Profiles are saved by Forge on this PC, for your Windows sign-in.</span><span data-only="app">Profiles are saved on this PC, for your Windows sign-in.</span> A zero limit means that limit is not configured; the calculator warns but never silently clamps a result.</div>
 </div>
 <span class="status-chip" id="connectionStatus">Checking connection</span>
 </div>
@@ -39,7 +41,7 @@
 </div>
 <div>
 <label for="machineProfileName">Profile name</label>
-<input id="machineProfileName" maxlength="60" type="text"/>
+<input id="machineProfileName" maxlength="60" type="text" data-change="suggestProfileBooks()"/>
 </div>
 <div>
 <label for="machineMaxRpm">Maximum spindle RPM</label>
@@ -49,6 +51,11 @@
 <label for="machineMaxFeed">Maximum feed IPM</label>
 <input id="machineMaxFeed" min="0" step="any" type="number" value="0"/>
 </div>
+</div>
+<div class="profile-tools" id="profileToolsBox" hidden>
+<fieldset><legend>Toolbooks on this machine</legend><div class="profile-books" id="profileBooks"></div></fieldset>
+<fieldset><legend>Extra tools</legend><div id="profileExtraTools"></div></fieldset>
+<div class="note">A profile with nothing ticked shows every shop tool. Ticked toolbooks and extra tools limit every tool list on the page.</div>
 </div>
 <div class="workflow-actions">
 <button data-click="saveMachineProfile()" type="button">Save Profile</button>
@@ -60,10 +67,9 @@
 <div class="card" id="shopToolsCard" hidden>
 <h2>Shop Tools</h2>
 <div class="note" id="shopToolsNote"></div>
-<div class="row3">
-<div><label for="shopToolSearch">Search description, part or maker</label><input id="shopToolSearch" type="search" data-change="searchShopTools()"/></div>
+<div class="row2">
+<div><label for="shopToolSearch">Search description, part or maker</label><input id="shopToolSearch" type="search" data-input="searchShopTools()"/></div>
 <div><label for="shopToolBook">Toolbook</label><select id="shopToolBook" data-change="searchShopTools()"><option value="">All toolbooks</option></select></div>
-<div><label for="shopToolKind">Kind</label><select id="shopToolKind" data-change="searchShopTools()"><option value="">All kinds</option><option value="drill">Drill</option><option value="mill">Mill</option><option value="chamfer">Chamfer</option><option value="spot">Spot or center drill</option><option value="threadmill">Thread mill</option><option value="tap">Tap</option><option value="bore">Boring bar</option><option value="ream">Reamer</option><option value="other">Other</option></select></div>
 </div>
 <div class="shop-tool-list" id="shopToolResults"></div>
 <div class="result result-info" id="shopToolDetail" hidden></div>
@@ -72,6 +78,7 @@
 <div class="grid2 compact-grid">
 <div class="card">
 <h2>Milling and Drilling Calculator</h2>
+<div class="shop-pick" id="pickMain" data-pick-kinds="mill,drill,bore,ream" data-pick-target="main" hidden></div>
 <div class="row2">
 <div>
 <label for="calcType">Calculation type</label>
@@ -245,6 +252,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div>
 </div><div class="card">
 <h2>Point and Spot Depth</h2>
+<div class="shop-pick" id="pickSpot" data-pick-kinds="spot,drill" data-pick-target="spot" hidden></div>
 <div class="row2">
 <div>
 <label for="spotToolType">Tool</label>
@@ -301,10 +309,12 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div><p class="note">This selection drives the thread tools below. Diameter and pitch fields can still be edited for a custom thread.</p>
 <div class="shop-tool-list" id="tapShopTools" hidden></div></div>
 <div class="grid2 compact-grid"><div class="card"><h2>Tap Drill Check</h2>
+<div class="shop-pick" id="pickTapCheck" data-pick-kinds="tap" data-pick-target="tap" hidden></div>
 <label for="candidateDrill">Check a drill size</label><input id="candidateDrill" placeholder="Optional: #7, 13/64, .201, 5.1 mm" type="text"/>
 <button data-click="calcTapSearch()">Check Tap Drill</button><div class="result" id="tapResult"></div>
 <div class="note">Straight threads show a calculated drill range and alternatives. NPT shows a listed cutting-tap drill reference; NPT form-tap sizing is intentionally not estimated.</div>
 </div><div class="card"><h2>Tap Speeds and Feeds</h2>
+<div class="shop-pick" id="pickTapSpeed" data-pick-kinds="tap" data-pick-target="tap" hidden></div>
 <div class="row3"><div><label for="tapToolMaterial">Tap tool material</label><select id="tapToolMaterial" data-change="applyTapPreset()"><option value="hss">HSS</option><option value="carbide">Carbide</option></select></div><div><label for="tapWorkMaterial">Work material</label><select id="tapWorkMaterial"></select></div><div><label for="tapPresetLevel">Shop baseline level</label><select id="tapPresetLevel" data-change="applyTapPreset()"><option value="conservative">Low / conservative</option><option selected="selected" value="standard">Standard starting point</option><option value="upper">Upper baseline — verify setup</option></select></div></div>
 <div class="row2"><div><label id="tapCalcMajorLabel" for="tapCalcMajor">Major diameter (in)</label><input id="tapCalcMajor" step="any" type="number" value="0.250"/></div><div><label id="tapCalcPitchLabel" for="tapCalcPitch">Pitch (TPI)</label><input id="tapCalcPitch" step="any" type="number" value="20"/></div></div>
 <div class="row2"><div><label for="tapCalcSfm">SFM</label><input id="tapCalcSfm" step="any" type="number" value=""/></div><div><label for="tapCalcRpm">RPM</label><input id="tapCalcRpm" step="any" type="number" value=""/></div></div>
@@ -312,6 +322,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div class="quick"><button class="secondary" data-click="applyTapPreset()">Apply Shop Baseline</button><button data-click="calcTapSpeedFeed()">Calculate</button><button class="ghost" data-click="clearTapCalc()">Clear Variables</button></div><div class="result" id="tapSpeedResult"></div>
 </div></div>
 <div class="grid2 compact-grid center-narrow"><div class="card"><h2>Thread Mill Helper</h2>
+<div class="shop-pick" id="pickThreadMill" data-pick-kinds="threadmill" data-pick-target="threadmill" hidden></div>
 <div class="row3"><div><label id="tmMajorLabel" for="tmMajor">Major diameter (in)</label><input id="tmMajor" step="any" type="number" value="0.500"/></div><div><label id="tmPitchLabel" for="tmPitch">Pitch (TPI)</label><input id="tmPitch" step="any" type="number" value="13"/></div><div><label for="tmToolDia">Thread mill diameter (selected units)</label><input id="tmToolDia" step="any" type="number" value="0.0625"/></div></div>
 <div class="row3"><div id="tmMinorWrap" hidden><label id="tmMinorLabel" for="tmMinor">Minor diameter (in)</label><input id="tmMinor" step="any" type="number" value=""/></div><div><label for="tmRpm">RPM</label><input id="tmRpm" step="any" type="number" value="1800"/></div><div><label for="tmFpt">Feed per tooth (in/tooth)</label><input id="tmFpt" step="any" type="number" value="0.0015"/></div><div><label for="tmDepth">Threaded length or depth</label><input id="tmDepth" step="any" type="number" value="0.500"/></div></div>
 <div class="row3"><div><label for="tmFlutes">Cutting teeth or flutes</label><input id="tmFlutes" min="1" step="1" type="number" value="3"/></div><div><label for="tmLocation">Thread location</label><select id="tmLocation" data-change="toggleThreadLocation(); calcThreadMill()"><option value="internal">Internal thread</option><option value="external">External thread</option></select></div><div><label for="tmUnits">Tool diameter and depth units</label><select id="tmUnits" data-change="changeThreadMillUnits()"><option value="inch">Inch</option><option value="metric">Metric</option></select></div></div>
@@ -319,6 +330,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div><div class="card" id="nptHelperCard" hidden><h2>NPT Helper</h2><p class="note">Uses the selected NPT thread above.</p><label for="nptTurns">Thread turns desired</label><input id="nptTurns" step="any" type="number" value="4"/><button data-click="calcNptHelper()">Calculate NPT Approximation</button><div class="result" id="nptHelperResult"></div><div class="note">Approximate programming aid only. Verify functional depth with the proper thread form and inspection gage.</div></div></div>
 <div class="sectionhead" id="milling">Geometry and Helix</div><p class="note">For geometry tools, use the same length unit for every input in that card. The taper calculator specifically expects inches because it reports taper per inch and per foot.</p><div class="grid-auto"><div class="card">
 <h2>Chamfer and Countersink Depth</h2>
+<div class="shop-pick" id="pickChamfer" data-pick-kinds="chamfer" data-pick-target="chamfer" hidden></div>
 <div class="row2">
 <div>
 <label for="chamferHoleDia">Starting hole diameter</label>

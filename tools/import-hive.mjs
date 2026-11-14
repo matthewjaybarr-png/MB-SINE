@@ -25,7 +25,8 @@ const BOOKS = [
   ["467-468", ["TOOLBOOKS/467-468/MSTR TL- BLT 467.xlsx", "TOOLBOOKS/467-468/MASTER TOOL BELT 468 (2023) .xlsx"]],
   ["469-471", ["TOOLBOOKS/Tool Book 469-471.xlsx"]],
   ["476-477", ["TOOLBOOKS/OKM-MSTR-TL-HIVE_476-477.xlsx"]],
-  ["487-488", ["TOOLBOOKS/M487-488 COMBIED TOOLBOOK.xlsx"]],
+  // the file says 487-488; the machines are really 387-388 (Matt, 1.3.0)
+  ["387-388", ["TOOLBOOKS/M487-488 COMBIED TOOLBOOK.xlsx"]],
   ["372", ["TOOLBOOKS/tools_372.dgn"]],
   ["459", ["TOOLBOOKS/tools_459.dgn"]],
 ];

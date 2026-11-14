@@ -14,6 +14,27 @@
     return number;
   }
 
+  /**
+   * Milling calculation type for a shop mill, read from its toolbook description only.
+   * sure is false when the description names neither a face, shoulder nor end mill.
+   */
+  function shopMillCalcType(description) {
+    const d = String(description || "").toUpperCase();
+    if (/FACE/.test(d) && /\b45\b/.test(d)) return { type: "face45", sure: true };
+    if (/SHOULDER|\b90 ?(DEG|°)/.test(d)) return { type: "shoulder90", sure: true };
+    if (/END ?MILL|\bE\/?M\b|\bED-M\b|\bBALL\b|BULL ?NOSE/.test(d)) return { type: "endmill", sure: true };
+    return { type: "endmill", sure: false };
+  }
+
+  /**
+   * The toolbook FPT is the shop's proven programmed FPT, so the toolbook feed is RPM x teeth x FPT.
+   * over is true when the card's programmed feed is more than 10% above it.
+   */
+  function toolbookFeed({ rpm, teeth, fpt, programmedIpm }) {
+    const ipm = requirePositive(rpm, "RPM") * requirePositive(teeth, "Teeth") * requirePositive(fpt, "Toolbook FPT");
+    return { ipm, over: Number(programmedIpm) > ipm * 1.1 };
+  }
+
   function requireNonNegative(value, label) {
     const number = Number(value);
     if (!Number.isFinite(number) || number < 0) {
@@ -450,6 +471,8 @@
     taperGeometry,
     threadMill,
     scallopGeometry,
+    shopMillCalcType,
+    toolbookFeed,
     truePosition,
   };
 });
