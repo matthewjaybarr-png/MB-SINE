@@ -260,19 +260,28 @@ test('T102 3.0" face mill at its toolbook numbers: 955 RPM, 76.4 IPM, equal to t
   closeTo(rpm, 954.93, 0.01);
   const programmed = rpm * 8 * 0.01;
   closeTo(programmed, 76.39, 0.01);
-  const book = calc.toolbookFeed({ rpm, teeth: 8, fpt: 0.01, programmedIpm: programmed });
+  const book = calc.toolbookFeed({ sfm: 750, diameterInches: 3, teeth: 8, fpt: 0.01, programmedIpm: programmed });
   closeTo(book.ipm, programmed);
   assert.equal(book.over, false);
   // the 1.2.1 result: Endmill mode with a left-over .078 stepover tripled it
   const thinned = programmed * calc.radialChipThinningFactor(0.078, 3);
   assert.ok(thinned > 239 && thinned < 241);
-  assert.equal(calc.toolbookFeed({ rpm, teeth: 8, fpt: 0.01, programmedIpm: thinned }).over, true);
+  assert.equal(calc.toolbookFeed({ sfm: 750, diameterInches: 3, teeth: 8, fpt: 0.01, programmedIpm: thinned }).over, true);
 });
 
 test('a shop endmill run at 25% stepover is flagged above its toolbook feed', () => {
-  const rpm = 3000, teeth = 4, fpt = 0.003;
+  const sfm = 400, diameterInches = 0.5, teeth = 4, fpt = 0.003;
+  const rpm = calc.rpmFromSfm(sfm, diameterInches);
   const thinned = rpm * teeth * fpt * calc.radialChipThinningFactor(0.125, 0.5);
-  assert.equal(calc.toolbookFeed({ rpm, teeth, fpt, programmedIpm: thinned }).over, true);
+  assert.equal(calc.toolbookFeed({ sfm, diameterInches, teeth, fpt, programmedIpm: thinned }).over, true);
   // 50% stepover, the shop-fill default, has no chip thinning
   assert.equal(calc.radialChipThinningFactor(0.25, 0.5), 1);
+});
+
+test('the toolbook feed uses the toolbook SFM, never the card RPM', () => {
+  // T102 with a card slowed to 60.7 IPM: the toolbook line still reads 76.4 IPM, not RPM-driven
+  const book = calc.toolbookFeed({ sfm: 750, diameterInches: 3, teeth: 8, fpt: 0.01, programmedIpm: 60.7 });
+  closeTo(book.ipm, 76.39, 0.01);
+  assert.equal(book.over, false);
+  assert.throws(() => calc.toolbookFeed({ sfm: 750, diameterInches: 0.5, teeth: undefined, fpt: 0.003, programmedIpm: 50 }));
 });

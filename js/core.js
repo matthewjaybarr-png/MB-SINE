@@ -27,11 +27,12 @@
   }
 
   /**
-   * The toolbook FPT is the shop's proven programmed FPT, so the toolbook feed is RPM x teeth x FPT.
+   * The toolbook FPT is the shop's proven programmed FPT, so the toolbook feed is the toolbook's own
+   * SFM -> RPM x toolbook teeth x FPT; nothing from the card goes into it.
    * over is true when the card's programmed feed is more than 10% above it.
    */
-  function toolbookFeed({ rpm, teeth, fpt, programmedIpm }) {
-    const ipm = requirePositive(rpm, "RPM") * requirePositive(teeth, "Teeth") * requirePositive(fpt, "Toolbook FPT");
+  function toolbookFeed({ sfm, diameterInches, teeth, fpt, programmedIpm }) {
+    const ipm = rpmFromSfm(requirePositive(sfm, "Toolbook SFM"), diameterInches) * requirePositive(teeth, "Toolbook teeth") * requirePositive(fpt, "Toolbook FPT");
     return { ipm, over: Number(programmedIpm) > ipm * 1.1 };
   }
 
