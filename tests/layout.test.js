@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolveView, splitCard, parseSaved, toolButtonState } = require('../js/layout.js');
+const { resolveView, splitCard, parseSaved, toolButtonState, pickShowsDetail } = require('../js/layout.js');
 
 const pages = [
   { id: 'shopsetup', tabs: [{ id: 'limits', visible: true }, { id: 'tools', visible: false }] },
@@ -28,4 +28,14 @@ test('tool drawer button shows the count and hides when empty or the list is hid
   assert.deepEqual(toolButtonState(4, false), { hidden: false, text: 'Shop tools at this size (4)' });
   assert.equal(toolButtonState(0, false).hidden, true);
   assert.equal(toolButtonState(3, true).hidden, true);
+});
+test('splitCard keeps units and safety notes visible and folds nothing in a card without a button', () => {
+  const kids = ['h2|', 'div|row2', 'button|', 'div|result', 'div|note keep', 'div|note'].map(kid);
+  assert.deepEqual(splitCard(kids), { out: [3], notes: [5] });
+  assert.deepEqual(splitCard(['h2|', 'div|note', 'div|row2', 'div|result'].map(kid)), { out: [3], notes: [] });
+});
+test('a drawer pick that fills no calculator shows the tool detail instead', () => {
+  assert.equal(pickShowsDetail("pickShopTool(12)"), true);
+  assert.equal(pickShowsDetail("pickShopTool(12); useShopTool('main')"), false);
+  assert.equal(pickShowsDetail("pickShopTool(3); useShopTool('tap')"), false);
 });

@@ -87,3 +87,8 @@ test('shop tool picks open the calculator they fill instead of scrolling a hidde
 test('reference tables scroll inside their card instead of widening a narrow window', () => {
   assert.match(styles, /\.reference-stack\{\s*display:grid;\s*grid-template-columns:minmax\(0,1fr\);/);
 });
+test('units and safety notes are marked to stay visible beside their calculator', () => {
+  for (const text of ['Feed inputs and displayed feed rates are imperial', 'Feed inputs and outputs are imperial', 'Approximate programming aid only', 'Apply print datum and material-condition', 'NPT shows a listed cutting-tap drill']) {
+    assert.match(html, new RegExp('class="note keep"[^>]*>[^<]*' + text), text);
+  }
+});

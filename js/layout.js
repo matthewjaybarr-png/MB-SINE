@@ -25,9 +25,15 @@
     const out = [], notes = [];
     children.forEach((c, i) => {
       if(has(c.cls, "result") || (i > last && has(c.cls, "shop-tool-list"))) out.push(i);
-      if(i > lastButton && has(c.cls, "note") && !out.includes(i)) notes.push(i);
+      // units and safety lines ("note keep") stay in view; a card with no button has nothing to fold under
+      if(lastButton >= 0 && i > lastButton && has(c.cls, "note") && !has(c.cls, "keep") && !out.includes(i)) notes.push(i);
     });
     return { out, notes };
+  }
+
+  // picks with no "Use in" step only fill the Shop Tools detail, so that is what gets shown
+  function pickShowsDetail(dataClick){
+    return !/useShopTool\(/.test(String(dataClick || ""));
   }
 
   function toolButtonState(count, listHidden){
@@ -226,7 +232,13 @@
     // a pick runs its data-click action at the document, then the drawer closes
     dlg.addEventListener("click", e => {
       if(e.target === dlg) dlg.close();
-      else if(e.target.closest(".shop-tool")) setTimeout(() => dlg.close());
+      else {
+        const pick = e.target.closest(".shop-tool");
+        if(pick) setTimeout(() => {
+          dlg.close();
+          if(pickShowsDetail(pick.dataset.click)) revealField("shopToolDetail");
+        });
+      }
     });
     dlg.addEventListener("close", () => {
       const id = dlg.dataset.list;
@@ -261,7 +273,7 @@
     window.addEventListener("hashchange", () => showPage(location.hash.slice(1), { focus: true }));
   }
 
-  const api = { resolveView, splitCard, parseSaved, toolButtonState, showPage, showTab, revealField, syncToolButton, openToolDrawer, initLayout };
+  const api = { resolveView, splitCard, parseSaved, toolButtonState, pickShowsDetail, showPage, showTab, revealField, syncToolButton, openToolDrawer, initLayout };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.MBLayout = api;
   root.showPage = showPage;
