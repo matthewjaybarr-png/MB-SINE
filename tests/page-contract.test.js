@@ -84,3 +84,6 @@ test('shop tool picks open the calculator they fill instead of scrolling a hidde
   assert.doesNotMatch(app, /scrollIntoView/);
   assert.equal((app.match(/revealField\("/g) || []).length, 5);
 });
+test('reference tables scroll inside their card instead of widening a narrow window', () => {
+  assert.match(styles, /\.reference-stack\{\s*display:grid;\s*grid-template-columns:minmax\(0,1fr\);/);
+});
