@@ -10,7 +10,7 @@ const serviceWorker = fs.readFileSync(new URL('../service-worker.js', `file://${
 const manifest = JSON.parse(fs.readFileSync(new URL('../manifest.webmanifest', `file://${__filename}`), 'utf8'));
 
 test('page loads the tested calculation core before its controller', () => {
-  assert.match(html, /<script src="\.\/js\/data\.js"><\/script>\s*<script src="\.\/js\/core\.js"><\/script>\s*<script src="\.\/js\/workflow\.js"><\/script>\s*<script src="\.\/js\/app\.js"><\/script>\s*<script src="\.\/js\/actions\.js"><\/script>/);
+  assert.match(html, /<script src="\.\/js\/data\.js"><\/script>\s*<script src="\.\/js\/core\.js"><\/script>\s*<script src="\.\/js\/workflow\.js"><\/script>\s*<script src="\.\/js\/app\.js"><\/script>\s*<script src="\.\/js\/actions\.js"><\/script>\s*<script src="\.\/js\/layout\.js"><\/script>/);
   assert.match(html, /<link href="\.\/css\/styles\.css" rel="stylesheet"\/>\s*<script src="\.\/js\/host\.js"><\/script>\s*<\/head>/);
   assert.doesNotMatch(html, /<script>(?:\s|.)*?<\/script>/);
   assert.doesNotMatch(html, /<style>/);
@@ -57,7 +57,7 @@ test('offline application metadata and cache contracts remain complete', () => {
   assert.equal(manifest.start_url, './');
   assert.match(serviceWorker, /mb-sine-v\d+/);
   assert.deepEqual(manifest.icons.map(icon => icon.sizes), ['192x192', '512x512']);
-  for (const asset of ['./index.html', './css/styles.css', './js/host.js', './js/data.js', './js/core.js', './js/workflow.js', './js/app.js', './js/actions.js', './icons/mb-sine-192.png', './icons/mb-sine-512.png']) {
+  for (const asset of ['./index.html', './css/styles.css', './js/host.js', './js/data.js', './js/core.js', './js/workflow.js', './js/app.js', './js/actions.js', './js/layout.js', './icons/mb-sine-192.png', './icons/mb-sine-512.png']) {
     assert.match(serviceWorker, new RegExp(asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.match(app, /navigator\.serviceWorker\.register\("\.\/service-worker\.js"\)/);

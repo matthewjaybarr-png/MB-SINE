@@ -30,6 +30,7 @@ const ASSETS = [
   "js/workflow.js",
   "js/app.js",
   "js/actions.js",
+  "js/layout.js",
   "icons/mb-sine.svg"
 ];
 
