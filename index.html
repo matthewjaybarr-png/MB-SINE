@@ -23,7 +23,8 @@
 <a href="#shopsetup">Shop Setup</a><a href="#speeds">Speeds and Feeds</a><a href="#drillcharts">Drill Charts</a><a href="#threads">Threads and Taps</a><a href="#milling">Geometry and Helix</a><a href="#advanced">Advanced Math</a><a href="#shopmath">Shop Math</a><a href="#reference">Reference</a>
 </nav>
 <main class="wrap">
-<div class="sectionhead" id="shopsetup">Shop Setup</div>
+<section class="page" id="shopsetup" aria-labelledby="shopsetup-title">
+<div class="sectionhead" id="shopsetup-title">Shop Setup</div>
 <div class="card workflow-card">
 <div class="workflow-heading">
 <div>
@@ -74,7 +75,9 @@
 <div class="shop-tool-list" id="shopToolResults"></div>
 <div class="result result-info" id="shopToolDetail" hidden></div>
 </div>
-<div class="sectionhead" id="speeds">Speeds and Feeds</div>
+</section>
+<section class="page" id="speeds" aria-labelledby="speeds-title">
+<div class="sectionhead" id="speeds-title">Speeds and Feeds</div>
 <div class="grid2 compact-grid">
 <div class="card">
 <h2>Milling and Drilling Calculator</h2>
@@ -230,7 +233,9 @@ Choose SFM or RPM as the speed input. Feed inputs and outputs are imperial: IPR 
 </div>
 </div>
 </div>
-<div class="sectionhead" id="drillcharts">Drill Charts and Sizes</div>
+</section>
+<section class="page" id="drillcharts" aria-labelledby="drillcharts-title">
+<div class="sectionhead" id="drillcharts-title">Drill Charts and Sizes</div>
 <div class="grid-auto"><div class="card">
 <h2>Searchable Drill Size Chart</h2>
 <div class="row2">
@@ -301,7 +306,9 @@ Bare decimal values are treated as inches; include mm for metric input.
 <button data-click="calcPeck()">Calculate Peck Guidance</button>
 <div class="result" id="peckResult"></div>
 </div></div>
-<div class="sectionhead" id="threads">Threads and Taps</div>
+</section>
+<section class="page" id="threads" aria-labelledby="threads-title">
+<div class="sectionhead" id="threads-title">Threads and Taps</div>
 <div class="card thread-setup"><h2>Thread Setup</h2><div class="row3">
 <div><label for="threadType">Thread standard</label><select id="threadType" data-change="loadThreadChart()"><option value="UNC">UNC</option><option value="UNF">UNF</option><option value="NPT">NPT</option><option value="METRIC">Metric</option></select></div>
 <div><label for="threadSelect">Thread or tap size</label><select id="threadSelect" data-change="syncThreadToolsFromTap()"></select></div>
@@ -328,7 +335,9 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div class="row3"><div><label for="tmFlutes">Cutting teeth or flutes</label><input id="tmFlutes" min="1" step="1" type="number" value="3"/></div><div><label for="tmLocation">Thread location</label><select id="tmLocation" data-change="toggleThreadLocation(); calcThreadMill()"><option value="internal">Internal thread</option><option value="external">External thread</option></select></div><div><label for="tmUnits">Tool diameter and depth units</label><select id="tmUnits" data-change="changeThreadMillUnits()"><option value="inch">Inch</option><option value="metric">Metric</option></select></div></div>
 <button data-click="calcThreadMill()">Calculate Thread Mill</button><div class="result" id="threadMillResult"></div>
 </div><div class="card" id="nptHelperCard" hidden><h2>NPT Helper</h2><p class="note">Uses the selected NPT thread above.</p><label for="nptTurns">Thread turns desired</label><input id="nptTurns" step="any" type="number" value="4"/><button data-click="calcNptHelper()">Calculate NPT Approximation</button><div class="result" id="nptHelperResult"></div><div class="note">Approximate programming aid only. Verify functional depth with the proper thread form and inspection gage.</div></div></div>
-<div class="sectionhead" id="milling">Geometry and Helix</div><p class="note">For geometry tools, use the same length unit for every input in that card. The taper calculator specifically expects inches because it reports taper per inch and per foot.</p><div class="grid-auto"><div class="card">
+</section>
+<section class="page" id="milling" aria-labelledby="milling-title">
+<div class="sectionhead" id="milling-title">Geometry and Helix</div><p class="note">For geometry tools, use the same length unit for every input in that card. The taper calculator specifically expects inches because it reports taper per inch and per foot.</p><div class="grid-auto"><div class="card">
 <h2>Chamfer and Countersink Depth</h2>
 <div class="shop-pick" id="pickChamfer" data-pick-kinds="chamfer" data-pick-target="chamfer" hidden></div>
 <div class="row2">
@@ -402,7 +411,9 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div>
 <div class="result" id="helixPitchResult"></div>
 </div></div>
-<div class="sectionhead" id="advanced">Advanced Milling and Inspection Math</div>
+</section>
+<section class="page" id="advanced" aria-labelledby="advanced-title">
+<div class="sectionhead" id="advanced-title">Advanced Milling and Inspection Math</div>
 <div class="grid-auto">
 <div class="card">
 <h2>Circular Interpolation Feed</h2>
@@ -485,7 +496,9 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div class="result" id="boreStockResult"></div>
 </div>
 </div>
-<div class="sectionhead" id="shopmath">Shop Math</div>
+</section>
+<section class="page" id="shopmath" aria-labelledby="shopmath-title">
+<div class="sectionhead" id="shopmath-title">Shop Math</div>
 <div class="grid3 compact-grid">
 <div class="card">
 <h2>Conversions</h2>
@@ -669,7 +682,9 @@ Bare decimal values are treated as inches; include mm for metric input.
 <div class="note">Enter any valid two pieces of information. Angle A is opposite Side A and adjacent to Side B.</div>
 </div>
 </div>
-<div class="sectionhead" id="reference">Reference Tables</div>
+</section>
+<section class="page" id="reference" aria-labelledby="reference-title">
+<div class="sectionhead" id="reference-title">Reference Tables</div>
 <div class="reference-stack"><div class="card">
 <h2>Machine Shop Formulas</h2>
 <div class="note">Use this page as a programming helper, not as final authority.<br/><br/>Always confirm tool brand data, holder limits, spindle limits, stickout, coolant, workholding, finish, tolerance, and machine limits before cutting.<br/><br/>For chamfers, the programmed depth is from a sharp corner or theoretical point unless the print or process says otherwise.<br/><br/>For NPT, always verify with the correct gage because pitch and turns only get you close.</div>
@@ -732,6 +747,7 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div>
 <div class="note">Values are shown low / standard / upper. They are MB baselines, not manufacturer cutting data. ISO material groups follow the <a href="https://www.sandvik.coromant.com/en-us/knowledge/materials/workpiece-materials" rel="noopener noreferrer" target="_blank">Sandvik Coromant workpiece-material classification</a>.</div>
 </div></div>
+</section>
 </main>
 <aside class="result-rail" aria-label="Latest calculation result">
 <div class="workflow-output">

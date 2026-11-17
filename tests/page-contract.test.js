@@ -62,3 +62,16 @@ test('offline application metadata and cache contracts remain complete', () => {
   }
   assert.match(app, /navigator\.serviceWorker\.register\("\.\/service-worker\.js"\)/);
 });
+
+test('every menu link opens a section.page', () => {
+  const hrefs = [...html.match(/<nav class="nav"[\s\S]*?<\/nav>/)[0].matchAll(/href="#([\w-]+)"/g)].map(m => m[1]);
+  assert.ok(hrefs.length >= 8);
+  for (const id of hrefs) {
+    const opens = html.match(new RegExp(`<section class="page" id="${id}"`, 'g')) || [];
+    assert.equal(opens.length, 1, `#${id} needs exactly one section.page`);
+  }
+  const pages = html.split(/<section class="page"/).slice(1);
+  assert.equal(pages.length, hrefs.length);
+  for (const p of pages) assert.equal((p.split('</section>')[0].match(/class="sectionhead"/g) || []).length, 1);
+  assert.doesNotMatch(html, /class="sectionhead" id="(?![\w-]+-title")/);
+});

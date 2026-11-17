@@ -90,7 +90,7 @@ font-weight:700;
 line-height:1.3;
 transition:background-color .15s ease,color .15s ease,border-color .15s ease;
 }
-.nav a:hover,.nav a:focus-visible,body:has(#shopsetup:target) .nav a[href="#shopsetup"],body:has(#speeds:target) .nav a[href="#speeds"],body:has(#drillcharts:target) .nav a[href="#drillcharts"],body:has(#threads:target) .nav a[href="#threads"],body:has(#milling:target) .nav a[href="#milling"],body:has(#advanced:target) .nav a[href="#advanced"],body:has(#shopmath:target) .nav a[href="#shopmath"],body:has(#reference:target) .nav a[href="#reference"]{
+.nav a:hover,.nav a:focus-visible,.nav a[aria-current="page"]{
 background:var(--soft);
 border-left-color:var(--accent);
 color:var(--text);
@@ -350,7 +350,7 @@ grid-template-columns:1fr;
 .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";gap:8px;padding:8px 12px 20px;}
 .nav{grid-area:nav;position:sticky;top:44px;z-index:18;flex-direction:row;flex-wrap:nowrap;justify-content:flex-start;gap:4px;max-height:none;overflow-x:auto;padding:5px 2px;background:var(--bg);border-bottom:1px solid var(--line);}
 .nav a{flex:0 0 auto;white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:8px 9px;}
-.nav a:hover,.nav a:focus-visible,body:has(#shopsetup:target) .nav a[href="#shopsetup"],body:has(#speeds:target) .nav a[href="#speeds"],body:has(#drillcharts:target) .nav a[href="#drillcharts"],body:has(#threads:target) .nav a[href="#threads"],body:has(#milling:target) .nav a[href="#milling"],body:has(#advanced:target) .nav a[href="#advanced"],body:has(#shopmath:target) .nav a[href="#shopmath"],body:has(#reference:target) .nav a[href="#reference"]{border-bottom-color:var(--accent);border-left-color:transparent;}
+.nav a:hover,.nav a:focus-visible,.nav a[aria-current="page"]{border-bottom-color:var(--accent);border-left-color:transparent;}
 .result-rail{grid-area:result;position:static;}
 .wrap{grid-area:content;padding:0;}
 }
