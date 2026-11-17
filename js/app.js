@@ -87,6 +87,7 @@ selectMachineProfile();
 function selectMachineProfile(){
 const profile = activeMachineProfile();
 writeStoredJson(ACTIVE_MACHINE_STORAGE_KEY, profile ? profile.id : "");
+gid("topMachine").textContent = profile ? profile.name : "No machine profile";
 gid("machineProfileName").value = profile ? profile.name : "";
 gid("machineMaxRpm").value = profile ? profile.maxRpm : "0";
 gid("machineMaxFeed").value = profile ? profile.maxFeedIpm : "0";

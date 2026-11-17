@@ -16,6 +16,7 @@
 <header class="topbar">
 <h1>SINE</h1>
 <span class="version" id="sineVersion"></span>
+<span class="top-machine" id="topMachine" title="Active machine profile">No machine profile</span>
 <label class="theme-pick" data-only="app">Theme <select id="themePicker" aria-label="Theme"></select></label>
 </header>
 <div class="workbench">
@@ -749,19 +750,14 @@ Bare decimal values are treated as inches; include mm for metric input.
 </div></div>
 </section>
 </main>
-<aside class="result-rail" aria-label="Latest calculation result">
-<div class="workflow-output">
-<div>
-<strong>Latest shop result</strong>
+<div class="result-actions" id="resultActions" hidden>
 <div class="note" id="latestResultStatus" aria-live="polite">Run a calculation to enable copy and download.</div>
-</div>
-<pre class="latest-result-detail" id="latestResultDetail" aria-live="polite">No result yet.</pre>
+<pre class="latest-result-detail" id="latestResultDetail" hidden>No result yet.</pre>
 <div class="workflow-actions output-actions">
 <button class="secondary" disabled id="copyLatestButton" data-click="copyLatestResult()" type="button">Copy Result</button>
 <button class="ghost" disabled id="downloadLatestButton" data-click="downloadLatestResult()" type="button">Download Note</button>
 </div>
 </div>
-</aside>
 </div>
 <script src="./js/data.js"></script>
 <script src="./js/core.js"></script>

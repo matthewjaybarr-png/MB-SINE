@@ -132,7 +132,19 @@
       const one = list.querySelectorAll(".tab:not([hidden])").length < 2;
       if(list.hidden !== one) list.hidden = one;
     }
+    if(!page.hidden) placeActions(cardsOf(page).find(c => c.dataset.tab === tab));
     return tab;
+  }
+
+  // Copy / Download follow the calculator on screen; cards with only preset previews get none
+  function placeActions(card){
+    const box = document.getElementById("resultActions");
+    if(!box) return;
+    const skip = typeof NON_EXPORTABLE_RESULTS !== "undefined" ? NON_EXPORTABLE_RESULTS : new Set();
+    const ok = !!card && [...card.querySelectorAll(".result")].some(r => !skip.has(r.id));
+    const home = ok && (card.querySelector(":scope > .card-out") || card);
+    if(home && box.parentNode !== home) home.appendChild(box);
+    if(box.hidden === ok) box.hidden = !ok;
   }
 
   function showTab(pageId, tabId, opts){

@@ -75,3 +75,8 @@ test('every menu link opens a section.page', () => {
   for (const p of pages) assert.equal((p.split('</section>')[0].match(/class="sectionhead"/g) || []).length, 1);
   assert.doesNotMatch(html, /class="sectionhead" id="(?![\w-]+-title")/);
 });
+test('result actions live with the calculator, machine name in the top bar', () => {
+  for(const id of ['topMachine', 'copyLatestButton', 'downloadLatestButton', 'latestResultStatus', 'resultActions']) assert.match(html, new RegExp('id="' + id + '"'), id);
+  assert.doesNotMatch(html, /result-rail/);
+  assert.match(html, /<header class="topbar">[\s\S]*id="topMachine"[\s\S]*<\/header>/);
+});
