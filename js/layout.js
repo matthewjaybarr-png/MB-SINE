@@ -30,6 +30,10 @@
     return { out, notes };
   }
 
+  function toolButtonState(count, listHidden){
+    return { hidden: !!listHidden || !(count > 0), text: "Shop tools at this size (" + count + ")" };
+  }
+
   function parseSaved(text){
     let v;
     try { v = JSON.parse(text); } catch(e){ return { tabs: {} }; }
@@ -182,20 +186,73 @@
     }
   }
 
+  // In-card shop tool lists open in a side drawer; the list itself stays out of the card.
+  // The Shop Tools search card (#shopToolResults) is the list's own page, so it stays inline.
+  const DRAWER_LISTS = ["mainShopTools", "tapShopTools"];
+  function syncToolButton(listId){
+    const list = document.getElementById(listId);
+    const btn = document.querySelector(`.drawer-open[aria-controls="${listId}"]`);
+    if(!list || !btn) return;
+    const st = toolButtonState(list.querySelectorAll(".shop-tool").length, list.hidden);
+    if(btn.hidden !== st.hidden) btn.hidden = st.hidden;
+    if(btn.textContent !== st.text) btn.textContent = st.text;
+  }
+  function openToolDrawer(listId){
+    const dlg = document.getElementById("toolDrawer");
+    const list = document.getElementById(listId);
+    if(!dlg || !list || dlg.open) return;
+    dlg.querySelector(".drawer-body").appendChild(list);
+    dlg.dataset.list = listId;
+    dlg.showModal();
+  }
+  function initDrawer(){
+    const dlg = document.getElementById("toolDrawer");
+    if(!dlg) return;
+    DRAWER_LISTS.forEach(id => {
+      const list = document.getElementById(id);
+      if(!list) return;
+      list.classList.add("in-drawer");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "secondary drawer-open";
+      btn.setAttribute("aria-controls", id);
+      btn.setAttribute("aria-haspopup", "dialog");
+      btn.addEventListener("click", () => openToolDrawer(id));
+      list.before(btn);
+      syncToolButton(id);
+      new MutationObserver(() => syncToolButton(id)).observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden"] });
+    });
+    dlg.querySelector(".drawer-close").addEventListener("click", () => dlg.close());
+    // a pick runs its data-click action at the document, then the drawer closes
+    dlg.addEventListener("click", e => {
+      if(e.target === dlg) dlg.close();
+      else if(e.target.closest(".shop-tool")) setTimeout(() => dlg.close());
+    });
+    dlg.addEventListener("close", () => {
+      const id = dlg.dataset.list;
+      const list = id && document.getElementById(id);
+      const btn = document.querySelector(`.drawer-open[aria-controls="${id}"]`);
+      if(list && btn){ btn.after(list); if(!btn.hidden) btn.focus(); }
+      delete dlg.dataset.list;
+    });
+  }
+
   function initLayout(){
     let saved = { tabs: {} };
     try { saved = parseSaved(localStorage.getItem(KEY)); } catch(e){}
     Object.assign(view.tabs, saved.tabs);
     pageEls().forEach(p => { cardsOf(p).forEach(splitCardEl); buildTabs(p); });
+    initDrawer();
     showPage(resolveView(location.hash, saved, pageEls().map(pageInfo)).page);
     // Menu links change the hash themselves, so Back/Forward and links all land here.
     window.addEventListener("hashchange", () => showPage(location.hash.slice(1), { focus: true }));
   }
 
-  const api = { resolveView, splitCard, parseSaved, showPage, showTab, initLayout };
+  const api = { resolveView, splitCard, parseSaved, toolButtonState, showPage, showTab, syncToolButton, openToolDrawer, initLayout };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.MBLayout = api;
   root.showPage = showPage;
+  root.openToolDrawer = openToolDrawer;
   if (typeof document !== "undefined"){
     if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", initLayout);
     else initLayout();

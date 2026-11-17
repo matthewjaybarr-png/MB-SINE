@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { resolveView, splitCard, parseSaved } = require('../js/layout.js');
+const { resolveView, splitCard, parseSaved, toolButtonState } = require('../js/layout.js');
 
 const pages = [
   { id: 'shopsetup', tabs: [{ id: 'limits', visible: true }, { id: 'tools', visible: false }] },
@@ -23,4 +23,9 @@ test('parseSaved survives junk', () => {
   assert.deepEqual(parseSaved('{oops'), { tabs: {} });
   assert.deepEqual(parseSaved('[1]'), { tabs: {} });
   assert.deepEqual(parseSaved(null), { tabs: {} });
+});
+test('tool drawer button shows the count and hides when empty or the list is hidden', () => {
+  assert.deepEqual(toolButtonState(4, false), { hidden: false, text: 'Shop tools at this size (4)' });
+  assert.equal(toolButtonState(0, false).hidden, true);
+  assert.equal(toolButtonState(3, true).hidden, true);
 });
