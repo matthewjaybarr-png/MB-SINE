@@ -237,6 +237,19 @@
     });
   }
 
+  // Show the page and tab holding a field, then bring the field into view and focus it.
+  function revealField(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const page = el.closest(".page"), card = el.closest(".card");
+    if(page){
+      showPage(page.id);
+      if(card && card.dataset.tab) showTab(page.id, card.dataset.tab);
+    }
+    el.scrollIntoView({ block: "center" });
+    try { el.focus({ preventScroll: true }); } catch(e){ el.focus(); }
+  }
+
   function initLayout(){
     let saved = { tabs: {} };
     try { saved = parseSaved(localStorage.getItem(KEY)); } catch(e){}
@@ -248,11 +261,12 @@
     window.addEventListener("hashchange", () => showPage(location.hash.slice(1), { focus: true }));
   }
 
-  const api = { resolveView, splitCard, parseSaved, toolButtonState, showPage, showTab, syncToolButton, openToolDrawer, initLayout };
+  const api = { resolveView, splitCard, parseSaved, toolButtonState, showPage, showTab, revealField, syncToolButton, openToolDrawer, initLayout };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.MBLayout = api;
   root.showPage = showPage;
   root.openToolDrawer = openToolDrawer;
+  root.revealField = revealField;
   if (typeof document !== "undefined"){
     if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", initLayout);
     else initLayout();

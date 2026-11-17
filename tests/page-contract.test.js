@@ -80,3 +80,7 @@ test('result actions live with the calculator, machine name in the top bar', () 
   assert.doesNotMatch(html, /result-rail/);
   assert.match(html, /<header class="topbar">[\s\S]*id="topMachine"[\s\S]*<\/header>/);
 });
+test('shop tool picks open the calculator they fill instead of scrolling a hidden page', () => {
+  assert.doesNotMatch(app, /scrollIntoView/);
+  assert.equal((app.match(/revealField\("/g) || []).length, 5);
+});

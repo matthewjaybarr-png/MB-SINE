@@ -1733,7 +1733,7 @@ set("flutes", t.teeth || "");
 if(t.sfm){ set("speedBasis", "sfm"); updateSpeedBasisUI("main"); set("sfm", t.sfm); set("rpm", ""); }
 if(t.fpt && t.kind === "mill") set("fpt", t.fpt);
 calcMain();
-gid("toolDia").scrollIntoView({block:"center"});
+revealField("toolDia");
 } else if(target === "spot"){
 set("followDrillDia", t.dia);
 // the tool's angle only when its description states one the list has (never guessed)
@@ -1741,17 +1741,17 @@ const deg = (/(\d{2,3})\s*(°|DEG)/.exec(t.desc.toUpperCase()) || [])[1];
 const spotType = (t.kind === "drill" ? "drill" : /CENT|C-DR|CNTR/.test(t.desc.toUpperCase()) ? "center" : "spot") + deg;
 if(deg && [...gid("spotToolType").options].some(o => o.value === spotType)){ set("spotToolType", spotType); applySpotToolType(); }
 calcSpotDrill();
-gid("followDrillDia").scrollIntoView({block:"center"});
+revealField("followDrillDia");
 } else if(target === "chamfer"){
 set("chamferToolMaxDia", t.dia);
 if(t.angle && [...gid("chamferAngle").options].some(o => +o.value === t.angle * 2)) set("chamferAngle", t.angle * 2);
 calcChamfer();
-gid("chamferToolMaxDia").scrollIntoView({block:"center"});
+revealField("chamferToolMaxDia");
 } else if(target === "threadmill"){
 set("tmToolDia", t.dia);
 if(t.teeth) set("tmFlutes", t.teeth);
 calcThreadMill();
-gid("tmToolDia").scrollIntoView({block:"center"});
+revealField("tmToolDia");
 } else if(target === "tap"){
 const match = shopThreadMatch(t);
 const current = gid("threadType").value;
@@ -1771,7 +1771,7 @@ syncThreadToolsFromTap();
 shopTapSfm = t.sfm ? {sfm:t.sfm, label:t.book + " T" + t.id + " " + t.desc} : null;
 if(t.sfm){ set("tapSpeedBasis", "sfm"); updateSpeedBasisUI("tap"); set("tapCalcSfm", t.sfm); set("tapCalcRpm", ""); calcTapSpeedFeed(); }
 else applyTapPreset();
-gid("threadSelect").scrollIntoView({block:"center"});
+revealField("threadSelect");
 }
 }
 let shopTapSfm = null, shopCustomThread = null, shopMainFill = null;
