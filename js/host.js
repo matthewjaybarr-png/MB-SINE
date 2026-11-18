@@ -16,7 +16,7 @@
 (function (root) {
   "use strict";
 
-  const VERSION = "1.4.0";
+  const VERSION = "1.4.1";
   const HOSTS = new Set(["web", "forge", "app"]);
 
   // "app" is the Windows app: its page is http://tauri.localhost/ (tauri://localhost elsewhere).
@@ -50,6 +50,8 @@
     if (!parent || parent === win || !origin || origin === "null") return false;
     const post = message => { try { parent.postMessage(message, origin); } catch (_) { /* parent gone */ } };
     doc.addEventListener("mb-sine:result", event => post(resultMessage(event.detail || {})));
+    // the calculator on screen has no result: Forge must not keep offering the last one
+    doc.addEventListener("mb-sine:clear", () => post({ source: "mb-sine", type: "clear", version: VERSION }));
     const ready = () => post({ source: "mb-sine", type: "ready", version: VERSION });
     if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", ready, { once: true });
     else ready();

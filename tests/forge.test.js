@@ -58,7 +58,8 @@ test('Sine posts to a same-origin Forge parent only, and never to file://', () =
   const win = { parent, location: { origin: 'http://tauri.localhost' } };
   assert.equal(host.connectToForge(win, doc), true);
   listeners['mb-sine:result']({ detail: { label: 'Drill', created: new Date(0) } });
-  assert.deepEqual(sent.map(([m, o]) => [m.type, o]), [['ready', 'http://tauri.localhost'], ['result', 'http://tauri.localhost']]);
+  listeners['mb-sine:clear']();
+  assert.deepEqual(sent.map(([m, o]) => [m.type, o]), [['ready', 'http://tauri.localhost'], ['result', 'http://tauri.localhost'], ['clear', 'http://tauri.localhost']]);
 
   const topLevel = { location: { origin: 'http://tauri.localhost' } };
   topLevel.parent = topLevel;

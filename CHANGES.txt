@@ -1,5 +1,15 @@
 What changed in each MB Sine version (newest first).
 
+== 1.4.1
+Copy Result and Download Note export only this calculator's result
+- Each calculator now remembers its own last result. Before, a tap
+  result could be copied from the Turning calculator (work-PC review
+  11-18: tap T508, then Turning, exported 450 RPM / 34.6125 IPM).
+- A calculator with no result yet shows "Run a calculation..." and
+  its Copy / Download buttons stay off until it has one.
+- In Forge, the Sine panel's "Add as comment" also follows the
+  calculator on screen (Sine sends Forge a "clear" message).
+
 == 1.4.0
 One calculator at a time
 - The menu now opens one section at a time instead of scrolling a

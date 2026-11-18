@@ -206,19 +206,42 @@ function resultLabel(element){
 const heading = element.closest(".card")?.querySelector("h2, h3");
 return heading ? heading.textContent.trim() : element.id;
 }
+// Each calculator keeps its own last result, so Copy / Download never export another calculator's numbers
+const shopResults = new Map();
+let resultCard = null;
+function showLatestResult(result){
+latestShopResult = result || null;
+gid("latestResultStatus").textContent = result ? result.label + " · " + result.machine : "Run a calculation to enable copy and download.";
+gid("latestResultDetail").textContent = result ? result.text : "No result yet.";
+gid("copyLatestButton").disabled = !result;
+gid("downloadLatestButton").disabled = !result;
+document.dispatchEvent(result
+ ? new CustomEvent("mb-sine:result", {detail:{...result, note:latestResultNote()}})
+ : new CustomEvent("mb-sine:clear"));
+}
 function recordLatestResult(element){
-if(!element || NON_EXPORTABLE_RESULTS.has(element.id) || !element.textContent.trim()) return;
-latestShopResult = {
+if(!element || NON_EXPORTABLE_RESULTS.has(element.id)) return;
+if(!element.textContent.trim()){
+ if(shopResults.delete(element.id) && latestShopResult?.id === element.id) showLatestResult(null);
+ return;
+}
+const result = {
+ id:element.id,
  label:resultLabel(element),
  text:resultPlainText(element),
  machine:activeMachineProfile()?.name || "No machine profile selected",
  created:new Date()
 };
-gid("latestResultStatus").textContent = latestShopResult.label + " · " + latestShopResult.machine;
-gid("latestResultDetail").textContent = latestShopResult.text;
-document.dispatchEvent(new CustomEvent("mb-sine:result", {detail:{...latestShopResult, note:latestResultNote()}}));
-gid("copyLatestButton").disabled = false;
-gid("downloadLatestButton").disabled = false;
+shopResults.set(element.id, result);
+// a calculator that is not on screen only updates its own memory
+if(!resultCard || resultCard.contains(element)) showLatestResult(result);
+}
+// layout.js calls this whenever Copy / Download move to the calculator on screen
+function syncLatestResult(card){
+resultCard = card || null;
+const own = card ? [...card.querySelectorAll(".result")].map(r => shopResults.get(r.id)).filter(Boolean) : [];
+const result = own.sort((a, b) => b.created - a.created)[0] || null;
+if(result !== latestShopResult) showLatestResult(result);
 }
 function enableResultTracking(){
 const observer = new MutationObserver(records => {

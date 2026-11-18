@@ -155,6 +155,7 @@
     const home = ok && (card.querySelector(":scope > .card-out") || card);
     if(home && box.parentNode !== home) home.appendChild(box);
     if(box.hidden === ok) box.hidden = !ok;
+    if(typeof syncLatestResult === "function") syncLatestResult(card);
   }
 
   function showTab(pageId, tabId, opts){
