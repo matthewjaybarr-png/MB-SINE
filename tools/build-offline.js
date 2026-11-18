@@ -6,7 +6,7 @@
  *   node tools/build-offline.js [repoRoot] [outFile]
  *
  * What it does:
- *   - inlines css/styles.css and js/host.js, data.js, core.js, workflow.js, app.js, actions.js (same load order as index.html)
+ *   - inlines css/styles.css and js/host.js, data.js, core.js, workflow.js, app.js, actions.js, layout.js (same load order as index.html)
  *   - removes the Google Fonts link and the web-app manifest link (neither works from a USB drive)
  *   - swaps the favicon for an inline data URI
  *   - copies fonts/ (JetBrains Mono NL + OFL.txt) beside the page; without it the page falls back to Consolas
@@ -61,7 +61,7 @@ const shopTools = path.join(root, "shop", "tools.js");
 if (fs.existsSync(shopTools)) {
   replaceOnce(/<script src="\.\/js\/app\.js"><\/script>/, "<script>\n/* shop/tools.js */\n" + safeScript(fs.readFileSync(shopTools, "utf8")) + "\n</script>\n<script src=\"./js/app.js\"></script>", "app.js script (shop tools)");
 }
-const scripts = ["js/host.js", "js/data.js", "js/core.js", "js/workflow.js", "js/app.js", "js/actions.js"];
+const scripts = ["js/host.js", "js/data.js", "js/core.js", "js/workflow.js", "js/app.js", "js/actions.js", "js/layout.js"];
 for (const rel of scripts) {
   const tag = new RegExp(`<script src="\\./${rel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"></script>`);
   replaceOnce(tag, "<script>\n/* " + rel + " */\n" + safeScript(read(rel)) + "\n</script>", rel);

@@ -60,7 +60,7 @@ text-align:left;
 }
 .workbench{
 display:grid;
-grid-template-columns:184px minmax(0,1fr) 270px;
+grid-template-columns:184px minmax(0,1fr);
 gap:14px;
 max-width:1720px;
 margin:0 auto;
@@ -90,7 +90,7 @@ font-weight:700;
 line-height:1.3;
 transition:background-color .15s ease,color .15s ease,border-color .15s ease;
 }
-.nav a:hover,.nav a:focus-visible,body:has(#shopsetup:target) .nav a[href="#shopsetup"],body:has(#speeds:target) .nav a[href="#speeds"],body:has(#drillcharts:target) .nav a[href="#drillcharts"],body:has(#threads:target) .nav a[href="#threads"],body:has(#milling:target) .nav a[href="#milling"],body:has(#advanced:target) .nav a[href="#advanced"],body:has(#shopmath:target) .nav a[href="#shopmath"],body:has(#reference:target) .nav a[href="#reference"]{
+.nav a:hover,.nav a:focus-visible,.nav a[aria-current="page"]{
 background:var(--soft);
 border-left-color:var(--accent);
 color:var(--text);
@@ -115,7 +115,7 @@ align-items:start;
 }
 .reference-stack{
 display:grid;
-grid-template-columns:1fr;
+grid-template-columns:minmax(0,1fr);
 gap:16px;
 margin-bottom:16px;
 }
@@ -250,7 +250,6 @@ gap:8px;
 width:auto;
 min-width:130px;
 }
-.result-rail{position:sticky;top:68px;align-self:start;min-width:0;}
 .workflow-output{
 display:flex;
 flex-direction:column;
@@ -347,11 +346,10 @@ z-index:1;
 grid-template-columns:1fr;
 }
 .workflow-grid{grid-template-columns:1fr 1fr;}
-.workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";gap:8px;padding:8px 12px 20px;}
+.workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "content";gap:8px;padding:8px 12px 20px;}
 .nav{grid-area:nav;position:sticky;top:44px;z-index:18;flex-direction:row;flex-wrap:nowrap;justify-content:flex-start;gap:4px;max-height:none;overflow-x:auto;padding:5px 2px;background:var(--bg);border-bottom:1px solid var(--line);}
 .nav a{flex:0 0 auto;white-space:nowrap;border-left:0;border-bottom:2px solid transparent;padding:8px 9px;}
-.nav a:hover,.nav a:focus-visible,body:has(#shopsetup:target) .nav a[href="#shopsetup"],body:has(#speeds:target) .nav a[href="#speeds"],body:has(#drillcharts:target) .nav a[href="#drillcharts"],body:has(#threads:target) .nav a[href="#threads"],body:has(#milling:target) .nav a[href="#milling"],body:has(#advanced:target) .nav a[href="#advanced"],body:has(#shopmath:target) .nav a[href="#shopmath"],body:has(#reference:target) .nav a[href="#reference"]{border-bottom-color:var(--accent);border-left-color:transparent;}
-.result-rail{grid-area:result;position:static;}
+.nav a:hover,.nav a:focus-visible,.nav a[aria-current="page"]{border-bottom-color:var(--accent);border-left-color:transparent;}
 .wrap{grid-area:content;padding:0;}
 }
 @media (max-width:600px){
@@ -461,12 +459,11 @@ scrollbar-color:var(--f-rule) var(--f-chrome);
 /* a jump to a section stops just below the top bar */
 html:is([data-host="forge"],[data-host="app"]){scroll-padding-top:calc(var(--topbar-h,42px) + 6px);}
 :root:is([data-host="forge"],[data-host="app"]) .sectionhead{scroll-margin-top:0;}
-:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:148px minmax(0,1fr) 230px;gap:8px;padding:8px 10px 16px;}
+:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:148px minmax(0,1fr);gap:8px;padding:8px 10px 16px;}
 :root:is([data-host="forge"],[data-host="app"]) .nav{justify-content:flex-start;gap:3px;top:42px;}
 :root:is([data-host="forge"],[data-host="app"]) .nav a{background:transparent;border-color:transparent;border-radius:4px;color:var(--f-text);
 font-size:13px;font-weight:inherit;padding:4px 9px;}
 :root:is([data-host="forge"],[data-host="app"]) .nav a:hover{background:var(--f-raised);border-color:var(--f-rule);}
-:root:is([data-host="forge"],[data-host="app"]) .result-rail{top:42px;}
 :root:is([data-host="forge"],[data-host="app"]) .workflow-output{border-radius:6px;}
 :root:is([data-host="forge"],[data-host="app"]) .latest-result-detail{border-radius:4px;}
 :root:is([data-host="forge"],[data-host="app"]) .wrap{padding:8px;}
@@ -500,13 +497,12 @@ font-size:13px;font-weight:inherit;padding:4px 9px;}
 /* Forge ships the files; there is no online/offline state to report */
 :root:is([data-host="forge"],[data-host="app"]) #connectionStatus{display:none;}
 @media (max-width:1100px){
-:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "result" "content";}
+:root:is([data-host="forge"],[data-host="app"]) .workbench{grid-template-columns:minmax(0,1fr);grid-template-areas:"nav" "content";}
 :root:is([data-host="forge"],[data-host="app"]) .nav{top:42px;}
-:root:is([data-host="forge"],[data-host="app"]) .result-rail{position:static;top:auto;}
 }
 
 /* Shop Tools (installer and Forge builds only) */
-.shop-tool-list{display:flex;flex-direction:column;gap:4px;max-height:320px;overflow-y:auto;margin:10px 0;}
+.shop-tool-list{display:flex;flex-direction:column;gap:4px;margin:10px 0;}
 .shop-tool-list button.shop-tool{text-align:left;width:100%;white-space:normal;}
 /* text that names where Sine runs: data-only="web" on the website, data-only="forge" in Forge */
 :root:is([data-host="forge"],[data-host="app"]) [data-only="web"],
@@ -530,3 +526,42 @@ font-size:13px;font-weight:inherit;padding:4px 9px;}
 .shop-pick-row select{flex:3 1 220px;min-width:0;max-width:100%;text-overflow:ellipsis}
 details.shop-kind summary{cursor:pointer;padding:4px 0;font-weight:600}
 details.shop-kind{display:flex;flex-direction:column;gap:4px}
+
+/* One calculator at a time: pages, tabs, inputs beside the result */
+.page[hidden],.card.tab-off{display:none !important;}
+.page .grid2,.page .grid3,.page .grid-auto,.page .compact-grid{grid-template-columns:minmax(0,1fr);}
+.page .center-narrow{max-width:none;}
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px;padding:0 0 6px;border-bottom:1px solid var(--line);}
+.tabs[hidden]{display:none;}
+.tabs .tab{width:auto;background:transparent;color:var(--muted);border:1px solid transparent;border-bottom:2px solid transparent;border-radius:4px 4px 0 0;padding:6px 10px;font-weight:700;}
+.tabs .tab[aria-selected="true"]{color:var(--text);background:var(--soft);border-bottom-color:var(--accent);}
+.tabs .tab:hover{color:var(--text);}
+.card.split{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0 16px;align-items:start;overflow:visible;}
+.card.split > :not(.card-in):not(.card-out){grid-column:1 / -1;}
+.card-in,.card-out{min-width:0;}
+.card-out{position:sticky;top:calc(var(--topbar-h,44px) + 8px);}
+.card-out > .result:first-child{margin-top:0;}
+.card-help{margin-top:10px;}
+.card-help summary{cursor:pointer;color:var(--muted);font-size:13px;font-weight:700;}
+.card-help[open] summary{margin-bottom:6px;}
+@media (max-width:900px){
+.card.split{grid-template-columns:minmax(0,1fr);}
+.card-out{position:static;}
+}
+html[data-host="forge"] .card.split{grid-template-columns:minmax(0,1fr);}
+html[data-host="forge"] .card-out{position:static;}
+/* Copy / Download sit under the active calculator's result */
+.result-actions{display:grid;gap:8px;margin-top:10px;}
+.result-actions[hidden]{display:none;}
+.result-actions .output-actions{grid-template-columns:1fr 1fr;gap:8px;}
+.topbar .top-machine{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40ch;}
+/* Shop tool drawer: the list opens from the right; only the drawer scrolls */
+.card .shop-tool-list.in-drawer{display:none;}
+.drawer-open{width:100%;margin-top:10px;}
+.drawer-open[hidden]{display:none;}
+dialog.drawer{position:fixed;inset:0 0 0 auto;margin:0;height:100%;max-height:100%;width:min(420px,100vw);padding:0;border:0;border-left:1px solid var(--line);background:var(--card);color:var(--text);display:none;flex-direction:column;}
+dialog.drawer[open]{display:flex;}
+dialog.drawer::backdrop{background:rgba(0,0,0,.45);}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);}
+.drawer-head button{width:auto;margin:0;}
+.drawer-body{overflow-y:auto;padding:4px 14px 14px;flex:1;}

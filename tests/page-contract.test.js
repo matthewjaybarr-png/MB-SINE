@@ -10,7 +10,7 @@ const serviceWorker = fs.readFileSync(new URL('../service-worker.js', `file://${
 const manifest = JSON.parse(fs.readFileSync(new URL('../manifest.webmanifest', `file://${__filename}`), 'utf8'));
 
 test('page loads the tested calculation core before its controller', () => {
-  assert.match(html, /<script src="\.\/js\/data\.js"><\/script>\s*<script src="\.\/js\/core\.js"><\/script>\s*<script src="\.\/js\/workflow\.js"><\/script>\s*<script src="\.\/js\/app\.js"><\/script>\s*<script src="\.\/js\/actions\.js"><\/script>/);
+  assert.match(html, /<script src="\.\/js\/data\.js"><\/script>\s*<script src="\.\/js\/core\.js"><\/script>\s*<script src="\.\/js\/workflow\.js"><\/script>\s*<script src="\.\/js\/app\.js"><\/script>\s*<script src="\.\/js\/actions\.js"><\/script>\s*<script src="\.\/js\/layout\.js"><\/script>/);
   assert.match(html, /<link href="\.\/css\/styles\.css" rel="stylesheet"\/>\s*<script src="\.\/js\/host\.js"><\/script>\s*<\/head>/);
   assert.doesNotMatch(html, /<script>(?:\s|.)*?<\/script>/);
   assert.doesNotMatch(html, /<style>/);
@@ -57,8 +57,38 @@ test('offline application metadata and cache contracts remain complete', () => {
   assert.equal(manifest.start_url, './');
   assert.match(serviceWorker, /mb-sine-v\d+/);
   assert.deepEqual(manifest.icons.map(icon => icon.sizes), ['192x192', '512x512']);
-  for (const asset of ['./index.html', './css/styles.css', './js/host.js', './js/data.js', './js/core.js', './js/workflow.js', './js/app.js', './js/actions.js', './icons/mb-sine-192.png', './icons/mb-sine-512.png']) {
+  for (const asset of ['./index.html', './css/styles.css', './js/host.js', './js/data.js', './js/core.js', './js/workflow.js', './js/app.js', './js/actions.js', './js/layout.js', './icons/mb-sine-192.png', './icons/mb-sine-512.png']) {
     assert.match(serviceWorker, new RegExp(asset.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.match(app, /navigator\.serviceWorker\.register\("\.\/service-worker\.js"\)/);
+});
+
+test('every menu link opens a section.page', () => {
+  const hrefs = [...html.match(/<nav class="nav"[\s\S]*?<\/nav>/)[0].matchAll(/href="#([\w-]+)"/g)].map(m => m[1]);
+  assert.ok(hrefs.length >= 8);
+  for (const id of hrefs) {
+    const opens = html.match(new RegExp(`<section class="page" id="${id}"`, 'g')) || [];
+    assert.equal(opens.length, 1, `#${id} needs exactly one section.page`);
+  }
+  const pages = html.split(/<section class="page"/).slice(1);
+  assert.equal(pages.length, hrefs.length);
+  for (const p of pages) assert.equal((p.split('</section>')[0].match(/class="sectionhead"/g) || []).length, 1);
+  assert.doesNotMatch(html, /class="sectionhead" id="(?![\w-]+-title")/);
+});
+test('result actions live with the calculator, machine name in the top bar', () => {
+  for(const id of ['topMachine', 'copyLatestButton', 'downloadLatestButton', 'latestResultStatus', 'resultActions']) assert.match(html, new RegExp('id="' + id + '"'), id);
+  assert.doesNotMatch(html, /result-rail/);
+  assert.match(html, /<header class="topbar">[\s\S]*id="topMachine"[\s\S]*<\/header>/);
+});
+test('shop tool picks open the calculator they fill instead of scrolling a hidden page', () => {
+  assert.doesNotMatch(app, /scrollIntoView/);
+  assert.equal((app.match(/revealField\("/g) || []).length, 5);
+});
+test('reference tables scroll inside their card instead of widening a narrow window', () => {
+  assert.match(styles, /\.reference-stack\{\s*display:grid;\s*grid-template-columns:minmax\(0,1fr\);/);
+});
+test('units and safety notes are marked to stay visible beside their calculator', () => {
+  for (const text of ['Feed inputs and displayed feed rates are imperial', 'Feed inputs and outputs are imperial', 'Approximate programming aid only', 'Apply print datum and material-condition', 'NPT shows a listed cutting-tap drill']) {
+    assert.match(html, new RegExp('class="note keep"[^>]*>[^<]*' + text), text);
+  }
 });

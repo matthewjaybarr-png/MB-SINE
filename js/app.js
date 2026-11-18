@@ -87,6 +87,7 @@ selectMachineProfile();
 function selectMachineProfile(){
 const profile = activeMachineProfile();
 writeStoredJson(ACTIVE_MACHINE_STORAGE_KEY, profile ? profile.id : "");
+gid("topMachine").textContent = profile ? profile.name : "No machine profile";
 gid("machineProfileName").value = profile ? profile.name : "";
 gid("machineMaxRpm").value = profile ? profile.maxRpm : "0";
 gid("machineMaxFeed").value = profile ? profile.maxFeedIpm : "0";
@@ -569,6 +570,8 @@ else if(type === "endmill"){
  const programmedIpm = rpm * flutes * fpt;
  const adjustedIpm = rpm * flutes * adjustedFpt;
  feedIpm = adjustedIpm;
+ // advisory only: past about 3x, tool deflection and rubbing make the full thinned feed unsafe to trust
+ if(chipThin > 3) warnings.push("Chip thinning multiplies the feed by " + round(chipThin,1) + " at this light stepover. Past about 3x, prove the feed on the machine before running it; consider a wider stepover.");
  out += "Stepover ratio: " + round(ratio,4) + "<br>";
  out += "Chip thinning factor: " + round(chipThin,4) + "<br>";
  out += "Target feed per tooth at 50% or greater stepover: " + round(fpt,5) + " in/tooth<br>";
@@ -615,9 +618,10 @@ else{
 const fill = shopMainFill;
 if(fill && Math.abs(d - fill.tool.dia) < 1e-6 && type !== "drill"){
  if(!fill.sure && type === "endmill") out += "<br>Calculation type is Endmill because the toolbook description does not say face mill or shoulder mill. Change it if this tool is one.";
- const teeth = fill.tool.teeth || flutes;
- if(fill.tool.fpt && teeth && feedIpm){
-  const book = MBCalc.toolbookFeed({rpm, teeth, fpt:fill.tool.fpt, programmedIpm:feedIpm});
+ if(!fill.tool.teeth) out += "<br>The toolbook has no tooth count for " + escapeHtml(fill.tool.book + " T" + fill.tool.id) + ". Enter it in Flutes from the tool itself.";
+ // toolbook numbers only: a feed built from the card's RPM or flute count would look like toolbook data and isn't
+ if(fill.tool.fpt && fill.tool.teeth && fill.tool.sfm && feedIpm){
+  const book = MBCalc.toolbookFeed({sfm:fill.tool.sfm, diameterInches:fill.tool.dia, teeth:fill.tool.teeth, fpt:fill.tool.fpt, programmedIpm:feedIpm});
   out += "<br>Toolbook feed (" + escapeHtml(fill.tool.book + " T" + fill.tool.id) + "): " + round(book.ipm,1) + " IPM";
   if(book.over) warnings.push("Programmed feed " + round(feedIpm,1) + " IPM is " + round((feedIpm / book.ipm - 1) * 100,0) + "% above the toolbook feed (" + round(book.ipm,1) + " IPM). The toolbook FPT is already the shop's programmed FPT.");
  }
@@ -1723,12 +1727,13 @@ set("toolDia", t.dia);
 if(pick.type === "endmill") set("stepover", round(t.dia * 0.5, 4));
 shopMainFill = {tool:t, sure:pick.sure};
 toggleCalcType();
-if(t.teeth) set("flutes", t.teeth);
+// never keep the last tool's tooth count (or a type default): left empty, the card asks for it
+set("flutes", t.teeth || "");
 // the toolbook's own SFM; FPT only on mills, since on a drill the toolbook doesn't say per flute or per rev
 if(t.sfm){ set("speedBasis", "sfm"); updateSpeedBasisUI("main"); set("sfm", t.sfm); set("rpm", ""); }
 if(t.fpt && t.kind === "mill") set("fpt", t.fpt);
 calcMain();
-gid("toolDia").scrollIntoView({block:"center"});
+revealField("toolDia");
 } else if(target === "spot"){
 set("followDrillDia", t.dia);
 // the tool's angle only when its description states one the list has (never guessed)
@@ -1736,17 +1741,17 @@ const deg = (/(\d{2,3})\s*(°|DEG)/.exec(t.desc.toUpperCase()) || [])[1];
 const spotType = (t.kind === "drill" ? "drill" : /CENT|C-DR|CNTR/.test(t.desc.toUpperCase()) ? "center" : "spot") + deg;
 if(deg && [...gid("spotToolType").options].some(o => o.value === spotType)){ set("spotToolType", spotType); applySpotToolType(); }
 calcSpotDrill();
-gid("followDrillDia").scrollIntoView({block:"center"});
+revealField("followDrillDia");
 } else if(target === "chamfer"){
 set("chamferToolMaxDia", t.dia);
 if(t.angle && [...gid("chamferAngle").options].some(o => +o.value === t.angle * 2)) set("chamferAngle", t.angle * 2);
 calcChamfer();
-gid("chamferToolMaxDia").scrollIntoView({block:"center"});
+revealField("chamferToolMaxDia");
 } else if(target === "threadmill"){
 set("tmToolDia", t.dia);
 if(t.teeth) set("tmFlutes", t.teeth);
 calcThreadMill();
-gid("tmToolDia").scrollIntoView({block:"center"});
+revealField("tmToolDia");
 } else if(target === "tap"){
 const match = shopThreadMatch(t);
 const current = gid("threadType").value;
@@ -1766,7 +1771,7 @@ syncThreadToolsFromTap();
 shopTapSfm = t.sfm ? {sfm:t.sfm, label:t.book + " T" + t.id + " " + t.desc} : null;
 if(t.sfm){ set("tapSpeedBasis", "sfm"); updateSpeedBasisUI("tap"); set("tapCalcSfm", t.sfm); set("tapCalcRpm", ""); calcTapSpeedFeed(); }
 else applyTapPreset();
-gid("threadSelect").scrollIntoView({block:"center"});
+revealField("threadSelect");
 }
 }
 let shopTapSfm = null, shopCustomThread = null, shopMainFill = null;
